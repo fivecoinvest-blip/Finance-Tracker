@@ -1,0 +1,80 @@
+Build a modern Personal Finance, Expense, and Budget Tracker mobile app for iOS and Android with the following features:
+
+Core Goal:
+- Help users track all income, daily and recurring monthly expenses (credit cards, electricity, water, subscriptions), manage budgets, monitor multiple wallets/accounts, and build smarter financial habits through AI insights and gamification. The app should be offline-first, store all data locally, and be privacy-focused.
+
+Features:
+
+1️⃣ Wallet / Account Tracking
+- Users can create multiple wallets/accounts: Cash, Bank, Savings, E-wallets, Credit Cards
+- Wallet balances automatically update with transactions
+- Transfers between wallets supported
+
+2️⃣ Transactions
+- Add expenses and income linked to wallets
+- Automatic categorization (Food, Transport, Bills, Shopping, Salary, etc.)
+- Support recurring monthly expenses (credit card, electricity, water, subscriptions)
+- Optional notes and dates
+
+3️⃣ Budget Management
+- Set weekly/monthly budgets
+- Alerts when approaching or exceeding budgets
+- Track spending vs. budget by category
+
+4️⃣ Analytics Dashboard
+- Charts showing spending by category and month
+- Wallet balances and trends
+- Budget usage percentages
+- Visual insights into spending patterns
+
+5️⃣ AI Spending Insights
+- Analyze spending patterns locally
+- Detect overspending
+- Category spending alerts
+- Personalized suggestions for saving
+- Monthly financial summaries
+- Smart recommendations: e.g., “You spent 35% of your money on Food this month. Reducing food delivery by 20% could save ₱1,200.”
+
+6️⃣ Gamification & Money Habits
+- Daily expense logging streaks
+- Achievements, badges, and levels
+- Savings challenges and goals
+- Financial health score
+- Habit tracking (logging daily, staying under budget, saving weekly)
+- Optional rewards/XP for completing financial challenges
+
+7️⃣ Voice & Chat Input
+- Add income or expenses via voice or text
+- Natural language parsing for type, amount, category, wallet, and date
+- Offline-friendly input with optional AI suggestions
+- Confirmation of added transactions
+
+8️⃣ Local Offline Storage
+- All data stored locally on device (Hive or SQLite)
+- Offline-first operation
+- Encrypted for privacy
+
+9️⃣ Optional Cloud Backup
+- iCloud backup for iOS
+- Google Drive backup for Android
+- Encrypted backup and restore
+- Automatic or manual backup
+
+🔟 Ads & Monetization
+- Show banner ads in the app (dashboard, reports)
+- In Settings, users can pay ₱999 for **permanent ad removal**
+- Support offline ad-free operation after purchase
+
+🔧 Tech Stack Recommendations:
+- Mobile Framework: Flutter (iOS + Android)
+- Local Storage: Hive or SQLite
+- Charts: FL Chart
+- State Management: Riverpod or Provider
+- Voice Input: speech_to_text package
+- NLP / Chat Parsing: dialogflow_flutter or OpenAI API
+- Cloud Backup: flutter_icloud_storage (iOS), Google Drive API (Android)
+- Ads: Google AdMob or alternative banner ad networks
+- In-app purchase: Flutter In-App Purchase package
+
+🎯 Goal:
+Create a fast, privacy-first, offline-first, and gamified personal finance app with AI insights and voice/chat input that helps users manage wallets, track daily and recurring expenses, stick to budgets, and build healthy money habits. Monetize with banner ads, with an option to permanently remove ads via a one-time payment of ₱999.
