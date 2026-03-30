@@ -24,7 +24,7 @@ export default function SettingsScreen() {
           text: 'Purchase ₱999', onPress: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setAdsRemoved(true);
-            Alert.alert('Thank you!', 'Ads removed permanently. Enjoy FinTrack ad-free!');
+            Alert.alert('Thank you!', 'Ads removed permanently. Enjoy Cashper ad-free!');
           }
         },
       ]

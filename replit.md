@@ -23,7 +23,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
 │   ├── api-server/         # Express API server
-│   └── mobile/             # Expo React Native mobile app (FinTrack)
+│   └── mobile/             # Expo React Native mobile app (Cashper)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -36,7 +36,7 @@ artifacts-monorepo/
 └── package.json            # Root package with hoisted devDeps
 ```
 
-## FinTrack Mobile App (`artifacts/mobile`)
+## Cashper - Track Save Grow (`artifacts/mobile`)
 
 A personal finance tracker mobile app for iOS and Android.
 

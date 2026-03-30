@@ -1,6 +1,6 @@
 kind = "mobile"
 previewPath = "/"
-title = "FinTrack - Personal Finance"
+title = "Cashper - Track Save Grow"
 version = "1.0.0"
 id = "artifacts/mobile"
 router = "expo-domain"
