@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/context/ThemeContext';
 
 export type MascotMood =
@@ -11,15 +11,30 @@ export type MascotMood =
   | 'encourage'
   | 'levelup';
 
+// Resolved once at module load — no repeated require() calls per render
+const IMG_HAPPY     = require('@/assets/images/mascot-happy.png');
+const IMG_CELEBRATE = require('@/assets/images/mascot-celebrate.png');
+const IMG_SAVING    = require('@/assets/images/mascot-saving.png');
+const IMG_ALERT     = require('@/assets/images/mascot-alert.png');
+const IMG_DEFAULT   = require('@/assets/images/icon.png');
+
 const MASCOT_IMAGES: Record<MascotMood, any> = {
-  happy:     require('@/assets/images/mascot-happy.png'),
-  celebrate: require('@/assets/images/mascot-celebrate.png'),
-  saving:    require('@/assets/images/mascot-saving.png'),
-  alert:     require('@/assets/images/mascot-alert.png'),
-  encourage: require('@/assets/images/mascot-happy.png'),
-  levelup:   require('@/assets/images/mascot-celebrate.png'),
-  default:   require('@/assets/images/icon.png'),
+  happy:     IMG_HAPPY,
+  celebrate: IMG_CELEBRATE,
+  saving:    IMG_SAVING,
+  alert:     IMG_ALERT,
+  encourage: IMG_HAPPY,
+  levelup:   IMG_CELEBRATE,
+  default:   IMG_DEFAULT,
 };
+
+// Warm the native image cache on native platforms as early as possible
+if (Platform.OS !== 'web') {
+  Image.prefetch(Image.resolveAssetSource(IMG_HAPPY).uri).catch(() => {});
+  Image.prefetch(Image.resolveAssetSource(IMG_CELEBRATE).uri).catch(() => {});
+  Image.prefetch(Image.resolveAssetSource(IMG_SAVING).uri).catch(() => {});
+  Image.prefetch(Image.resolveAssetSource(IMG_ALERT).uri).catch(() => {});
+}
 
 const MASCOT_MESSAGES: Record<MascotMood, string[]> = {
   happy: [
