@@ -183,11 +183,13 @@ export function CashperMascot({
   return (
     <View style={[styles.container, style]}>
       <Pressable onPress={handlePress}>
-        <Animated.Image
-          source={MASCOT_IMAGES[mood]}
-          style={[styles.mascot, { width: size, height: size, transform: [{ scale: imageScale }, { scale: imageBounce }] }]}
-          resizeMode="contain"
-        />
+        <Animated.View style={{ transform: [{ scale: imageScale }, { scale: imageBounce }] }}>
+          <Image
+            source={MASCOT_IMAGES[mood]}
+            style={[styles.mascot, { width: size, height: size }]}
+            resizeMode="contain"
+          />
+        </Animated.View>
       </Pressable>
 
       {showMessage && (
