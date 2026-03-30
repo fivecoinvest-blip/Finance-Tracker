@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   appName: { fontSize: 26, fontWeight: '700' as const, letterSpacing: 0.5 },
   tagline: { fontSize: 12, marginTop: 2, letterSpacing: 1 },
   addBtn: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  mascotRow: { alignItems: 'center', marginBottom: 16 },
+  mascotRow: { marginBottom: 16 },
   balanceCard: { marginBottom: 16 },
   balanceLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 4 },
   balanceAmount: { color: '#FFFFFF', fontSize: 36, fontWeight: '700' as const, marginBottom: 20 },

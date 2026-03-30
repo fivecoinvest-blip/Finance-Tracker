@@ -191,19 +191,21 @@ export function CashperMascot({
       </Pressable>
 
       {showMessage && (
-        <Pressable onPress={handlePress}>
+        <Pressable onPress={handlePress} style={styles.bubbleWrapper}>
           <Animated.View style={[
             styles.bubble,
             {
               backgroundColor: Colors.accent + '18',
               borderColor: Colors.accent + '35',
               opacity: bubbleOpacity,
-              transform: [{ translateY: bubbleTranslateY }],
+              transform: [{ translateX: bubbleTranslateY }],
             },
           ]}>
+            <View style={[styles.tail, { borderRightColor: Colors.accent + '35' }]} />
+            <View style={[styles.tailInner, { borderRightColor: Colors.accent + '18' }]} />
             <Text style={[styles.bubbleText, { color: Colors.accent }]}>{displayMessage}</Text>
             {!message && (
-              <Text style={[styles.tapHint, { color: Colors.accent + '80' }]}>tap for more</Text>
+              <Text style={[styles.tapHint, { color: Colors.accent + '70' }]}>tap for more</Text>
             )}
           </Animated.View>
         </Pressable>
@@ -214,24 +216,53 @@ export function CashperMascot({
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
+    alignSelf: 'stretch',
   },
   mascot: {
     borderRadius: 16,
   },
+  bubbleWrapper: {
+    flex: 1,
+  },
   bubble: {
     borderRadius: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
+    paddingLeft: 16,
     borderWidth: 1,
-    maxWidth: 240,
-    alignItems: 'center',
+  },
+  tail: {
+    position: 'absolute',
+    left: -9,
+    top: '50%' as any,
+    marginTop: -8,
+    width: 0,
+    height: 0,
+    borderTopWidth: 8,
+    borderBottomWidth: 8,
+    borderRightWidth: 9,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  tailInner: {
+    position: 'absolute',
+    left: -7,
+    top: '50%' as any,
+    marginTop: -7,
+    width: 0,
+    height: 0,
+    borderTopWidth: 7,
+    borderBottomWidth: 7,
+    borderRightWidth: 8,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
   },
   bubbleText: {
     fontSize: 13,
     fontWeight: '600',
-    textAlign: 'center',
     lineHeight: 19,
   },
   tapHint: {
