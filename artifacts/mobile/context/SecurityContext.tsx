@@ -21,6 +21,7 @@ interface SecurityContextValue {
   enableLock: () => Promise<boolean>;
   disableLock: () => Promise<boolean>;
   unlock: () => Promise<boolean>;
+  lockNow: () => void;
 }
 
 const SecurityContext = createContext<SecurityContextValue | null>(null);
@@ -73,7 +74,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const [biometricType, setBiometricType] = useState('Biometrics');
   const [loaded, setLoaded] = useState(false);
 
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const backgroundTime = useRef<number | null>(null);
   const lockEnabledRef = useRef(lockEnabled);
   lockEnabledRef.current = lockEnabled;
@@ -91,16 +92,39 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loaded) return;
-    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
-      const prev = appState.current;
-      appState.current = next;
 
-      if ((prev === 'active') && (next === 'background' || next === 'inactive')) {
+    if (Platform.OS === 'web') {
+      const handleVisibility = () => {
+        if (document.hidden) {
+          backgroundTime.current = Date.now();
+        } else {
+          if (lockEnabledRef.current) {
+            const elapsed = backgroundTime.current
+              ? Date.now() - backgroundTime.current
+              : Infinity;
+            if (elapsed > LOCK_DELAY_MS) {
+              setIsLocked(true);
+            }
+          }
+          backgroundTime.current = null;
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibility);
+      return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }
+
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      const prev = appStateRef.current;
+      appStateRef.current = next;
+
+      if (prev === 'active' && (next === 'background' || next === 'inactive')) {
         backgroundTime.current = Date.now();
       }
 
       if (next === 'active' && lockEnabledRef.current) {
-        const elapsed = backgroundTime.current ? Date.now() - backgroundTime.current : Infinity;
+        const elapsed = backgroundTime.current
+          ? Date.now() - backgroundTime.current
+          : Infinity;
         if (elapsed > LOCK_DELAY_MS) {
           setIsLocked(true);
         }
@@ -109,6 +133,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     });
     return () => sub.remove();
   }, [loaded]);
+
+  const lockNow = useCallback(() => {
+    if (lockEnabledRef.current) setIsLocked(true);
+  }, []);
 
   const enableLock = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'web') {
@@ -141,7 +169,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const unlock = useCallback(async (): Promise<boolean> => {
-    if (Platform.OS === 'web') { setIsLocked(false); return true; }
+    if (Platform.OS === 'web') {
+      setIsLocked(false);
+      return true;
+    }
     const success = await doAuthenticate('Unlock Cashper');
     if (success) setIsLocked(false);
     return success;
@@ -150,7 +181,9 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   if (!loaded) return null;
 
   return (
-    <SecurityContext.Provider value={{ lockEnabled, isLocked, biometricsAvailable, biometricType, enableLock, disableLock, unlock }}>
+    <SecurityContext.Provider
+      value={{ lockEnabled, isLocked, biometricsAvailable, biometricType, enableLock, disableLock, unlock, lockNow }}
+    >
       {children}
     </SecurityContext.Provider>
   );

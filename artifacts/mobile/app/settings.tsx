@@ -171,7 +171,7 @@ export default function SettingsScreen() {
   const Colors = useColors();
   const { isDark, toggleTheme } = useTheme();
   const { currency, setCurrencyByCode } = useCurrency();
-  const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock } = useSecurity();
+  const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock, lockNow } = useSecurity();
   const { transactions, wallets, budgets, stats } = useFinance();
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
@@ -353,6 +353,17 @@ export default function SettingsScreen() {
               thumbColor="#fff"
             />
           </View>
+          {lockEnabled && (
+            <TouchableOpacity
+              style={[styles.settingsRow, styles.lastRow, { borderBottomColor: Colors.border }]}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); lockNow(); }}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="lock" size={20} color={Colors.accent} style={styles.settingsIcon} />
+              <Text style={[styles.settingsLabel, { color: Colors.accent, fontWeight: '600' }]}>Lock Now</Text>
+              <MaterialIcons name="chevron-right" size={20} color={Colors.accent} />
+            </TouchableOpacity>
+          )}
         </Card>
 
         <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Appearance</Text>
