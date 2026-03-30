@@ -59,16 +59,38 @@ export interface UserStats {
 }
 
 const DEFAULT_ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_tx', title: 'First Step', description: 'Add your first transaction', icon: 'star', xp: 50, condition: 'first_transaction' },
-  { id: 'streak_3', title: 'On a Roll', description: 'Log for 3 days in a row', icon: 'local-fire-department', xp: 100, condition: 'streak_3' },
-  { id: 'streak_7', title: 'Week Warrior', description: 'Log for 7 days in a row', icon: 'emoji-events', xp: 250, condition: 'streak_7' },
-  { id: 'streak_30', title: 'Monthly Master', description: 'Log for 30 days in a row', icon: 'military-tech', xp: 1000, condition: 'streak_30' },
-  { id: 'wallet_3', title: 'Multi-wallet', description: 'Create 3 wallets', icon: 'account-balance-wallet', xp: 75, condition: 'wallets_3' },
-  { id: 'budget_maker', title: 'Budget Pro', description: 'Create your first budget', icon: 'pie-chart', xp: 100, condition: 'first_budget' },
-  { id: 'tx_10', title: 'Tracking Machine', description: 'Log 10 transactions', icon: 'track-changes', xp: 150, condition: 'transactions_10' },
-  { id: 'tx_50', title: 'Finance Guru', description: 'Log 50 transactions', icon: 'workspace-premium', xp: 500, condition: 'transactions_50' },
-  { id: 'under_budget', title: 'Budget Buster', description: 'Stay under budget for a month', icon: 'savings', xp: 300, condition: 'under_budget_month' },
-  { id: 'saver', title: 'Super Saver', description: 'Save over ₱5,000', icon: 'diamond', xp: 400, condition: 'savings_5000' },
+  // ── Tracking ──────────────────────────────────────────
+  { id: 'first_tx',    title: 'First Step',          description: 'Log your very first transaction',        icon: 'star',                   xp: 50,   condition: 'first_transaction' },
+  { id: 'tx_10',       title: 'Tracking Machine',    description: 'Log 10 transactions',                    icon: 'track-changes',          xp: 150,  condition: 'transactions_10' },
+  { id: 'tx_50',       title: 'Finance Guru',         description: 'Log 50 transactions',                    icon: 'workspace-premium',      xp: 500,  condition: 'transactions_50' },
+  { id: 'tx_100',      title: 'Century Club',         description: 'Log 100 transactions',                   icon: 'military-tech',          xp: 1000, condition: 'transactions_100' },
+  { id: 'tx_500',      title: 'Transaction Legend',   description: 'Log 500 transactions',                   icon: 'auto-awesome',           xp: 3000, condition: 'transactions_500' },
+  // ── Streaks ───────────────────────────────────────────
+  { id: 'streak_3',   title: 'On a Roll',             description: 'Log for 3 days in a row',               icon: 'local-fire-department',  xp: 100,  condition: 'streak_3' },
+  { id: 'streak_7',   title: 'Week Warrior',           description: 'Log for 7 days in a row',               icon: 'emoji-events',           xp: 250,  condition: 'streak_7' },
+  { id: 'streak_14',  title: 'Fortnight Focus',        description: 'Log for 14 days in a row',              icon: 'bolt',                   xp: 500,  condition: 'streak_14' },
+  { id: 'streak_30',  title: 'Monthly Master',         description: 'Log for 30 days in a row',              icon: 'whatshot',               xp: 1000, condition: 'streak_30' },
+  { id: 'streak_60',  title: 'Consistency King',       description: 'Log for 60 days in a row',              icon: 'diamond',                xp: 2000, condition: 'streak_60' },
+  { id: 'streak_100', title: 'Legendary',              description: 'Log for 100 days in a row',             icon: 'workspace-premium',      xp: 5000, condition: 'streak_100' },
+  // ── Wallets ───────────────────────────────────────────
+  { id: 'wallet_3',   title: 'Multi-Wallet',           description: 'Create 3 wallets',                      icon: 'account-balance-wallet', xp: 75,   condition: 'wallets_3' },
+  { id: 'wallet_5',   title: 'Wallet Pro',             description: 'Create 5 wallets',                      icon: 'credit-card',            xp: 150,  condition: 'wallets_5' },
+  // ── Budgets ───────────────────────────────────────────
+  { id: 'budget_maker', title: 'Budget Pro',           description: 'Create your first budget',              icon: 'pie-chart',              xp: 100,  condition: 'first_budget' },
+  { id: 'budget_5',   title: 'Budget Master',          description: 'Create 5 budgets',                      icon: 'bar-chart',              xp: 200,  condition: 'budgets_5' },
+  { id: 'under_budget', title: 'In Control',           description: 'Keep all budgets under limit',          icon: 'verified',               xp: 300,  condition: 'under_budget' },
+  // ── Savings ───────────────────────────────────────────
+  { id: 'net_positive', title: 'In the Green',         description: 'Reach a positive total balance',        icon: 'trending-up',            xp: 200,  condition: 'net_positive' },
+  { id: 'saver',       title: 'Super Saver',           description: 'Save a net total of 5,000',             icon: 'savings',                xp: 400,  condition: 'saver' },
+  { id: 'big_saver',   title: 'Wealth Builder',        description: 'Save a net total of 50,000',            icon: 'account-balance',        xp: 1500, condition: 'big_saver' },
+  // ── Income ────────────────────────────────────────────
+  { id: 'first_income', title: 'First Paycheck',       description: 'Log your first income',                 icon: 'attach-money',           xp: 75,   condition: 'first_income' },
+  { id: 'high_income',  title: 'High Earner',          description: 'Log 50,000+ income in one month',       icon: 'trending-up',            xp: 500,  condition: 'high_income' },
+  // ── Special ───────────────────────────────────────────
+  { id: 'category_explorer', title: 'Explorer',        description: 'Use 7 different expense categories',   icon: 'explore',                xp: 250,  condition: 'category_explorer' },
+  { id: 'night_owl',   title: 'Night Owl',             description: 'Log a transaction after 11 PM',         icon: 'bedtime',                xp: 100,  condition: 'night_owl' },
+  { id: 'early_bird',  title: 'Early Bird',            description: 'Log a transaction before 7 AM',         icon: 'wb-sunny',               xp: 100,  condition: 'early_bird' },
+  { id: 'big_ticket',  title: 'Big Ticket',            description: 'Log a single transaction over 10,000', icon: 'paid',                   xp: 150,  condition: 'big_ticket' },
 ];
 
 const DEFAULT_WALLETS: Wallet[] = [
@@ -91,6 +113,32 @@ export function xpToLevel(xp: number): number {
 
 export function xpForNextLevel(level: number): number {
   return Math.pow(level, 2) * 100;
+}
+
+export function xpForCurrentLevel(level: number): number {
+  return Math.pow(level - 1, 2) * 100;
+}
+
+export function xpProgressInLevel(xp: number): number {
+  const level = xpToLevel(xp);
+  const start = xpForCurrentLevel(level);
+  const end   = xpForNextLevel(level);
+  return end > start ? (xp - start) / (end - start) : 1;
+}
+
+export function getLevelTitle(level: number): string {
+  if (level >= 30) return 'Financial Sage';
+  if (level >= 25) return 'Money Master';
+  if (level >= 20) return 'Legend';
+  if (level >= 15) return 'Elite';
+  if (level >= 12) return 'Strategist';
+  if (level >= 9)  return 'Expert';
+  if (level >= 7)  return 'Analyst';
+  if (level >= 5)  return 'Saver';
+  if (level >= 4)  return 'Planner';
+  if (level >= 3)  return 'Aware';
+  if (level >= 2)  return 'Tracker';
+  return 'Newcomer';
 }
 
 export interface Insight {
@@ -210,18 +258,74 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
   const checkAchievements = (currentStats: UserStats, newWallets: Wallet[], newTx: Transaction[], newBudgets: Budget[]): string[] => {
     const unlocked: string[] = [];
-    const existing = currentStats.achievements;
-
-    if (newTx.length >= 1 && !existing.includes('first_tx')) unlocked.push('first_tx');
-    if (newTx.length >= 10 && !existing.includes('tx_10')) unlocked.push('tx_10');
-    if (newTx.length >= 50 && !existing.includes('tx_50')) unlocked.push('tx_50');
-    if (newWallets.length >= 3 && !existing.includes('wallet_3')) unlocked.push('wallet_3');
-    if (newBudgets.length >= 1 && !existing.includes('budget_maker')) unlocked.push('budget_maker');
-
+    const ex = currentStats.achievements;
     const streak = currentStats.streak;
-    if (streak >= 3 && !existing.includes('streak_3')) unlocked.push('streak_3');
-    if (streak >= 7 && !existing.includes('streak_7')) unlocked.push('streak_7');
-    if (streak >= 30 && !existing.includes('streak_30')) unlocked.push('streak_30');
+    const txCount = newTx.length;
+
+    // ── Tracking ──────────────────────────────
+    if (txCount >= 1   && !ex.includes('first_tx'))  unlocked.push('first_tx');
+    if (txCount >= 10  && !ex.includes('tx_10'))     unlocked.push('tx_10');
+    if (txCount >= 50  && !ex.includes('tx_50'))     unlocked.push('tx_50');
+    if (txCount >= 100 && !ex.includes('tx_100'))    unlocked.push('tx_100');
+    if (txCount >= 500 && !ex.includes('tx_500'))    unlocked.push('tx_500');
+
+    // ── Streaks ───────────────────────────────
+    if (streak >= 3   && !ex.includes('streak_3'))   unlocked.push('streak_3');
+    if (streak >= 7   && !ex.includes('streak_7'))   unlocked.push('streak_7');
+    if (streak >= 14  && !ex.includes('streak_14'))  unlocked.push('streak_14');
+    if (streak >= 30  && !ex.includes('streak_30'))  unlocked.push('streak_30');
+    if (streak >= 60  && !ex.includes('streak_60'))  unlocked.push('streak_60');
+    if (streak >= 100 && !ex.includes('streak_100')) unlocked.push('streak_100');
+
+    // ── Wallets ───────────────────────────────
+    if (newWallets.length >= 3 && !ex.includes('wallet_3')) unlocked.push('wallet_3');
+    if (newWallets.length >= 5 && !ex.includes('wallet_5')) unlocked.push('wallet_5');
+
+    // ── Budgets ───────────────────────────────
+    if (newBudgets.length >= 1 && !ex.includes('budget_maker')) unlocked.push('budget_maker');
+    if (newBudgets.length >= 5 && !ex.includes('budget_5'))     unlocked.push('budget_5');
+
+    if (newBudgets.length > 0) {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const weekStart  = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const allUnder = newBudgets.every(b => {
+        const start = b.period === 'monthly' ? monthStart : weekStart;
+        const spent = newTx
+          .filter(t => t.type === 'expense' && t.category === b.category && new Date(t.date) >= start)
+          .reduce((s, t) => s + t.amount, 0);
+        return spent <= b.limit;
+      });
+      if (allUnder && !ex.includes('under_budget')) unlocked.push('under_budget');
+    }
+
+    // ── Savings / balance ─────────────────────
+    const totalBalance = newWallets.reduce((s, w) => s + w.balance, 0);
+    if (totalBalance > 0      && !ex.includes('net_positive')) unlocked.push('net_positive');
+    if (totalBalance >= 5000  && !ex.includes('saver'))        unlocked.push('saver');
+    if (totalBalance >= 50000 && !ex.includes('big_saver'))    unlocked.push('big_saver');
+
+    // ── Income ────────────────────────────────
+    const hasIncome = newTx.some(t => t.type === 'income');
+    if (hasIncome && !ex.includes('first_income')) unlocked.push('first_income');
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyIncome = newTx
+      .filter(t => t.type === 'income' && new Date(t.date) >= monthStart)
+      .reduce((s, t) => s + t.amount, 0);
+    if (monthlyIncome >= 50000 && !ex.includes('high_income')) unlocked.push('high_income');
+
+    // ── Special ───────────────────────────────
+    const uniqueCategories = new Set(newTx.filter(t => t.type === 'expense').map(t => t.category)).size;
+    if (uniqueCategories >= 7 && !ex.includes('category_explorer')) unlocked.push('category_explorer');
+
+    const hour = now.getHours();
+    if (hour >= 23 && !ex.includes('night_owl'))  unlocked.push('night_owl');
+    if (hour < 7   && !ex.includes('early_bird')) unlocked.push('early_bird');
+
+    const latestTx = newTx[0];
+    if (latestTx && latestTx.amount >= 10000 && !ex.includes('big_ticket')) unlocked.push('big_ticket');
 
     return unlocked;
   };
@@ -232,7 +336,13 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     const updated = [...wallets, newWallet];
     setWallets(updated);
     await saveWallets(updated);
-  }, [wallets]);
+    const newAchievements = checkAchievements(stats, updated, transactions, budgets);
+    const xpGain = 15 + newAchievements.reduce((s, id) => {
+      return s + (DEFAULT_ACHIEVEMENTS.find(a => a.id === id)?.xp ?? 0);
+    }, 0);
+    const updatedStats = await updateStreakAndXP(stats, xpGain, newAchievements);
+    setStats(updatedStats);
+  }, [wallets, transactions, budgets, stats, updateStreakAndXP]);
 
   const updateWallet = useCallback(async (id: string, updates: Partial<Wallet>) => {
     const updated = wallets.map(w => w.id === id ? { ...w, ...updates } : w);
@@ -284,7 +394,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
     const updatedTx = [newTx, ...transactions];
     const newAchievements = checkAchievements(stats, updatedWallets, updatedTx, budgets);
-    const xpGain = 10 + newAchievements.reduce((xpSum, achievementId) => {
+    const baseXP = tx.type === 'income' ? 15 : tx.type === 'expense' ? 12 : 8;
+    const bonusXP = (tx.notes?.trim() ? 3 : 0) + (tx.description?.trim() ? 2 : 0);
+    const xpGain = baseXP + bonusXP + newAchievements.reduce((xpSum, achievementId) => {
       const achievement = DEFAULT_ACHIEVEMENTS.find(ach => ach.id === achievementId);
       return xpSum + (achievement?.xp ?? 0);
     }, 0);
