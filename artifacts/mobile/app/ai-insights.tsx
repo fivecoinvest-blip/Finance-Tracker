@@ -4,6 +4,7 @@ import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
@@ -19,8 +20,9 @@ const INSIGHT_ICONS = [
 export default function AIInsightsScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
+  const { formatAmountShort, formatDate, currency } = useCurrency();
   const { getAIInsights, getMonthlyIncome, getMonthlyExpenses, transactions } = useFinance();
-  const insights = getAIInsights();
+  const insights = getAIInsights(currency.symbol);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
   const income = getMonthlyIncome();
@@ -54,25 +56,23 @@ export default function AIInsightsScreen() {
             <MaterialIcons name="auto-awesome" size={24} color={Colors.accent} />
             <Text style={[styles.summaryTitle, { color: Colors.textPrimary }]}>Monthly Summary</Text>
           </View>
-          <Text style={[styles.summaryMonth, { color: Colors.textMuted }]}>{now.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}</Text>
+          <Text style={[styles.summaryMonth, { color: Colors.textMuted }]}>
+            {now.toLocaleDateString(currency.locale, { month: 'long', year: 'numeric' })}
+          </Text>
 
           <View style={styles.summaryStats}>
             <View style={styles.summaryStatItem}>
               <Text style={[styles.summaryStatLabel, { color: Colors.textMuted }]}>Income</Text>
-              <Text style={[styles.summaryStatValue, { color: Colors.income }]}>
-                ₱{income.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-              </Text>
+              <Text style={[styles.summaryStatValue, { color: Colors.income }]}>{formatAmountShort(income)}</Text>
             </View>
             <View style={styles.summaryStatItem}>
               <Text style={[styles.summaryStatLabel, { color: Colors.textMuted }]}>Expenses</Text>
-              <Text style={[styles.summaryStatValue, { color: Colors.expense }]}>
-                ₱{expenses.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-              </Text>
+              <Text style={[styles.summaryStatValue, { color: Colors.expense }]}>{formatAmountShort(expenses)}</Text>
             </View>
             <View style={styles.summaryStatItem}>
               <Text style={[styles.summaryStatLabel, { color: Colors.textMuted }]}>Saved</Text>
               <Text style={[styles.summaryStatValue, { color: savings >= 0 ? Colors.success : Colors.danger }]}>
-                ₱{Math.abs(savings).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                {formatAmountShort(Math.abs(savings))}
               </Text>
             </View>
           </View>
@@ -92,7 +92,7 @@ export default function AIInsightsScreen() {
             </View>
             <Text style={[styles.topCatName, { color: Colors.textPrimary }]}>{topCategory.name}</Text>
             <Text style={[styles.topCatAmount, { color: Colors.accent }]}>
-              ₱{topCategory.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              {formatAmountShort(topCategory.amount)}
             </Text>
             {expenses > 0 && (
               <Text style={[styles.topCatPct, { color: Colors.textMuted }]}>

@@ -103,8 +103,10 @@ interface FinanceContextValue {
   updateWallet: (id: string, updates: Partial<Wallet>) => void;
   deleteWallet: (id: string) => void;
   addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt'>) => void;
+  updateTransaction: (id: string, updates: Omit<Transaction, 'id' | 'createdAt'>) => void;
   deleteTransaction: (id: string) => void;
   addBudget: (budget: Omit<Budget, 'id' | 'createdAt'>) => void;
+  updateBudget: (id: string, updates: Partial<Omit<Budget, 'id' | 'createdAt'>>) => void;
   deleteBudget: (id: string) => void;
   getWalletById: (id: string) => Wallet | undefined;
   getCategorySpending: (category: string, period: BudgetPeriod) => number;
@@ -112,7 +114,7 @@ interface FinanceContextValue {
   getMonthlyIncome: () => number;
   getMonthlyExpenses: () => number;
   getBudgetUsage: (budgetId: string) => number;
-  getAIInsights: () => string[];
+  getAIInsights: (currencySymbol?: string) => string[];
   isLoading: boolean;
 }
 
@@ -325,6 +327,48 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     await saveStats(updatedStats);
   }, [transactions, wallets, stats]);
 
+  const updateTransaction = useCallback(async (txId: string, updates: Omit<Transaction, 'id' | 'createdAt'>) => {
+    const old = transactions.find(t => t.id === txId);
+    if (!old) return;
+
+    let updatedWallets = [...wallets];
+
+    // Reverse old balance effect
+    if (old.type === 'income') {
+      updatedWallets = updatedWallets.map(w => w.id === old.walletId ? { ...w, balance: w.balance - old.amount } : w);
+    } else if (old.type === 'expense') {
+      updatedWallets = updatedWallets.map(w => w.id === old.walletId ? { ...w, balance: w.balance + old.amount } : w);
+    } else if (old.type === 'transfer' && old.toWalletId) {
+      updatedWallets = updatedWallets.map(w => {
+        if (w.id === old.walletId) return { ...w, balance: w.balance + old.amount };
+        if (w.id === old.toWalletId) return { ...w, balance: w.balance - old.amount };
+        return w;
+      });
+    }
+
+    // Apply new balance effect
+    if (updates.type === 'income') {
+      updatedWallets = updatedWallets.map(w => w.id === updates.walletId ? { ...w, balance: w.balance + updates.amount } : w);
+    } else if (updates.type === 'expense') {
+      updatedWallets = updatedWallets.map(w => w.id === updates.walletId ? { ...w, balance: w.balance - updates.amount } : w);
+    } else if (updates.type === 'transfer' && updates.toWalletId) {
+      updatedWallets = updatedWallets.map(w => {
+        if (w.id === updates.walletId) return { ...w, balance: w.balance - updates.amount };
+        if (w.id === updates.toWalletId) return { ...w, balance: w.balance + updates.amount };
+        return w;
+      });
+    }
+
+    const updatedTx = transactions.map(t =>
+      t.id === txId ? { ...t, ...updates } : t
+    );
+
+    setWallets(updatedWallets);
+    setTransactions(updatedTx);
+    await saveWallets(updatedWallets);
+    await saveTransactions(updatedTx);
+  }, [wallets, transactions]);
+
   const addBudget = useCallback(async (budget: Omit<Budget, 'id' | 'createdAt'>) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const newBudget: Budget = { ...budget, id, createdAt: new Date().toISOString() };
@@ -342,6 +386,12 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setStats(updatedStats);
     }
   }, [budgets, stats, wallets, transactions, updateStreakAndXP]);
+
+  const updateBudget = useCallback(async (budgetId: string, updates: Partial<Omit<Budget, 'id' | 'createdAt'>>) => {
+    const updated = budgets.map(b => b.id === budgetId ? { ...b, ...updates } : b);
+    setBudgets(updated);
+    await saveBudgets(updated);
+  }, [budgets]);
 
   const deleteBudget = useCallback(async (id: string) => {
     const updated = budgets.filter(b => b.id !== id);
@@ -386,7 +436,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     return budget.limit > 0 ? spent / budget.limit : 0;
   }, [budgets, getCategorySpending]);
 
-  const getAIInsights = useCallback((): string[] => {
+  const getAIInsights = useCallback((currencySymbol = ''): string[] => {
     const insights: string[] = [];
     const monthlyExpenses = getMonthlyExpenses();
     const monthlyIncome = getMonthlyIncome();
@@ -404,7 +454,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     if (topCategory && monthlyExpenses > 0) {
       const pct = Math.round((topCategory[1] / monthlyExpenses) * 100);
       const saving = Math.round(topCategory[1] * 0.2);
-      insights.push(`You spent ${pct}% of your money on ${topCategory[0]} this month. Reducing it by 20% could save you ₱${saving.toLocaleString()}.`);
+      insights.push(`You spent ${pct}% of your money on ${topCategory[0]} this month. Reducing it by 20% could save you ${currencySymbol}${saving.toLocaleString()}.`);
     }
 
     if (savingsRate < 10 && monthlyIncome > 0) {
@@ -441,8 +491,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       achievements: DEFAULT_ACHIEVEMENTS,
       stats,
       addWallet, updateWallet, deleteWallet,
-      addTransaction, deleteTransaction,
-      addBudget, deleteBudget,
+      addTransaction, updateTransaction, deleteTransaction,
+      addBudget, updateBudget, deleteBudget,
       getWalletById,
       getCategorySpending,
       getTotalBalance, getMonthlyIncome, getMonthlyExpenses,

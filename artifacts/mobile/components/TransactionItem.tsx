@@ -3,27 +3,20 @@ import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/constants/colors';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useCurrency } from '@/context/CurrencyContext';
 import type { Transaction } from '@/context/FinanceContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface TransactionItemProps {
   transaction: Transaction;
   onPress?: () => void;
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today.getTime() - 86400000);
-  if (d.toDateString() === today.toDateString()) return 'Today';
-  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
-}
-
 export function TransactionItem({ transaction, onPress }: TransactionItemProps) {
   const Colors = useColors();
+  const { formatAmount, formatDate, currency } = useCurrency();
   const { getWalletById, deleteTransaction } = useFinance();
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -35,6 +28,13 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
     : transaction.type === 'transfer' ? Colors.transfer
     : Colors.expense;
   const amountSign = transaction.type === 'income' ? '+' : transaction.type === 'transfer' ? '↔' : '-';
+
+  const txDate = new Date(transaction.date);
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 86400000);
+  const dateLabel = txDate.toDateString() === today.toDateString() ? 'Today'
+    : txDate.toDateString() === yesterday.toDateString() ? 'Yesterday'
+    : formatDate(transaction.date, { month: 'short', day: 'numeric' });
 
   const handleDeleteConfirmed = async () => {
     setShowConfirm(false);
@@ -66,9 +66,9 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
           </View>
           <View style={styles.rightSide}>
             <Text style={[styles.amount, { color: amountColor }]}>
-              {amountSign}₱{transaction.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {amountSign}{formatAmount(transaction.amount)}
             </Text>
-            <Text style={[styles.date, { color: Colors.textMuted }]}>{formatDate(transaction.date)}</Text>
+            <Text style={[styles.date, { color: Colors.textMuted }]}>{dateLabel}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity

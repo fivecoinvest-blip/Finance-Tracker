@@ -16,16 +16,17 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
 import { CATEGORY_COLORS } from '@/constants/colors';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type TransactionType } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
 const EXAMPLES = [
-  'spent ₱250 on food today',
-  'received ₱15000 salary',
-  'paid ₱1200 for electric bill',
-  'bought groceries ₱800',
-  'GrabFood order ₱350',
-  'transferred ₱5000 to savings',
+  'spent 250 on food today',
+  'received 15000 salary',
+  'paid 1200 for electric bill',
+  'bought groceries 800',
+  'order food 350',
+  'transferred 5000 to savings',
 ];
 
 function parseNaturalInput(text: string): Partial<{ type: TransactionType; amount: number; category: string; description: string }> | null {
@@ -61,6 +62,7 @@ export default function VoiceInputScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
   const { wallets, addTransaction } = useFinance();
+  const { formatAmount, currency } = useCurrency();
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState<ReturnType<typeof parseNaturalInput>>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -85,7 +87,7 @@ export default function VoiceInputScreen() {
       if (!SR) { Alert.alert('Not Supported', 'Your browser does not support voice input. Please try Chrome or Edge.'); return; }
       const recognition = new SR();
       recognitionRef.current = recognition;
-      recognition.lang = 'en-PH';
+      recognition.lang = currency.locale;
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.onstart = () => { setListening(true); startPulse(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); };
@@ -109,7 +111,7 @@ export default function VoiceInputScreen() {
     const result = parseNaturalInput(text);
     setParsed(result);
     if (result) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    else Alert.alert('Hmm', "Couldn't detect an amount. Try: 'spent ₱200 on food'");
+    else Alert.alert('Hmm', `Couldn't detect an amount. Try: 'spent ${currency.symbol}200 on food'`);
   };
 
   const handleConfirm = async () => {
@@ -177,7 +179,7 @@ export default function VoiceInputScreen() {
             </View>
             <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
               <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Amount</Text>
-              <Text style={[styles.parsedValue, { color: Colors.textPrimary }]}>₱{parsed.amount?.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
+              <Text style={[styles.parsedValue, { color: Colors.textPrimary }]}>{formatAmount(parsed.amount ?? 0)}</Text>
             </View>
             <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
               <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Category</Text>

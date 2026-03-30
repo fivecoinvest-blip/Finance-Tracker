@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TextStyle } from 'react-native';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useColors } from '@/context/ThemeContext';
 
 interface AmountTextProps {
@@ -7,11 +8,11 @@ interface AmountTextProps {
   type?: 'income' | 'expense' | 'neutral' | 'transfer';
   style?: TextStyle;
   showSign?: boolean;
-  prefix?: string;
 }
 
-export function AmountText({ amount, type = 'neutral', style, showSign = true, prefix = '₱' }: AmountTextProps) {
+export function AmountText({ amount, type = 'neutral', style, showSign = true }: AmountTextProps) {
   const Colors = useColors();
+  const { formatAmount } = useCurrency();
   const color = type === 'income' ? Colors.income
     : type === 'expense' ? Colors.expense
     : type === 'transfer' ? Colors.transfer
@@ -20,7 +21,7 @@ export function AmountText({ amount, type = 'neutral', style, showSign = true, p
 
   return (
     <Text style={[{ color, fontWeight: '700' as const }, style]}>
-      {sign}{prefix}{Math.abs(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {sign}{formatAmount(amount)}
     </Text>
   );
 }

@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORY_COLORS } from '@/constants/colors';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type RecurringFrequency, type TransactionType } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
@@ -27,17 +28,26 @@ const RECURRING: { value: RecurringFrequency; label: string }[] = [
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
-  const { wallets, addTransaction } = useFinance();
+  const { currency } = useCurrency();
+  const { wallets, transactions, addTransaction, updateTransaction } = useFinance();
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const isEditing = !!editId;
 
-  const [type, setType] = useState<TransactionType>('expense');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Food');
-  const [description, setDescription] = useState('');
-  const [walletId, setWalletId] = useState(wallets[0]?.id ?? '');
-  const [toWalletId, setToWalletId] = useState(wallets[1]?.id ?? '');
-  const [recurring, setRecurring] = useState<RecurringFrequency>('none');
-  const [notes, setNotes] = useState('');
+  const existingTx = editId ? transactions.find(t => t.id === editId) : undefined;
+
+  const [type, setType] = useState<TransactionType>(existingTx?.type ?? 'expense');
+  const [amount, setAmount] = useState(existingTx ? String(existingTx.amount) : '');
+  const [category, setCategory] = useState(existingTx?.category ?? 'Food');
+  const [description, setDescription] = useState(existingTx?.description ?? '');
+  const [walletId, setWalletId] = useState(existingTx?.walletId ?? wallets[0]?.id ?? '');
+  const [toWalletId, setToWalletId] = useState(existingTx?.toWalletId ?? wallets[1]?.id ?? '');
+  const [recurring, setRecurring] = useState<RecurringFrequency>(existingTx?.recurring ?? 'none');
+  const [notes, setNotes] = useState(existingTx?.notes ?? '');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!walletId && wallets.length > 0) setWalletId(wallets[0].id);
+  }, [wallets]);
 
   const availableToWallets = wallets.filter(w => w.id !== walletId);
 
@@ -49,10 +59,10 @@ export default function AddTransactionScreen() {
     }
   };
 
-  const handleFromWalletChange = (id: string) => {
-    setWalletId(id);
-    if (type === 'transfer' && toWalletId === id) {
-      const other = wallets.find(w => w.id !== id);
+  const handleFromWalletChange = (wid: string) => {
+    setWalletId(wid);
+    if (type === 'transfer' && toWalletId === wid) {
+      const other = wallets.find(w => w.id !== wid);
       setToWalletId(other?.id ?? '');
     }
   };
@@ -66,17 +76,22 @@ export default function AddTransactionScreen() {
     }
     setSaving(true);
     try {
-      await addTransaction({
+      const payload = {
         type,
         amount: parseFloat(amount.replace(/,/g, '')),
         category: type === 'transfer' ? 'Transfer' : category,
         description: description.trim(),
         walletId,
         toWalletId: type === 'transfer' ? toWalletId : undefined,
-        date: new Date().toISOString(),
+        date: existingTx?.date ?? new Date().toISOString(),
         recurring,
         notes: notes.trim(),
-      });
+      };
+      if (isEditing && editId) {
+        await updateTransaction(editId, payload);
+      } else {
+        await addTransaction(payload);
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } finally {
@@ -92,7 +107,9 @@ export default function AddTransactionScreen() {
         <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>Add Transaction</Text>
+        <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>
+          {isEditing ? 'Edit Transaction' : 'Add Transaction'}
+        </Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -118,7 +135,7 @@ export default function AddTransactionScreen() {
           </View>
 
           <View style={[styles.amountContainer, { backgroundColor: Colors.card }]}>
-            <Text style={[styles.currencySymbol, { color: Colors.textSecondary }]}>₱</Text>
+            <Text style={[styles.currencySymbol, { color: Colors.textSecondary }]}>{currency.symbol}</Text>
             <TextInput
               style={[styles.amountInput, { color: Colors.textPrimary }]}
               placeholder="0.00"
@@ -126,7 +143,7 @@ export default function AddTransactionScreen() {
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
-              autoFocus={Platform.OS !== 'web'}
+              autoFocus={Platform.OS !== 'web' && !isEditing}
             />
           </View>
 
@@ -225,7 +242,7 @@ export default function AddTransactionScreen() {
 
           <TouchableOpacity style={[styles.saveBtn, { backgroundColor: Colors.accent }, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
             <MaterialIcons name="check" size={20} color="#FFFFFF" />
-            <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Transaction'}</Text>
+            <Text style={styles.saveBtnText}>{saving ? 'Saving...' : isEditing ? 'Update Transaction' : 'Save Transaction'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

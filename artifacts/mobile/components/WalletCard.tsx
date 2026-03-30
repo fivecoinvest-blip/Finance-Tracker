@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCurrency } from '@/context/CurrencyContext';
 import type { Wallet } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
@@ -16,6 +17,7 @@ const WALLET_TYPE_LABEL: Record<string, string> = {
 
 export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps) {
   const Colors = useColors();
+  const { formatAmount, formatAmountShort } = useCurrency();
 
   if (compact) {
     return (
@@ -32,7 +34,7 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
           <Text style={[styles.compactType, { color: Colors.textMuted }]}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
         </View>
         <Text style={[styles.compactBalance, { color: wallet.balance >= 0 ? Colors.textPrimary : Colors.danger }]}>
-          ₱{Math.abs(wallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          {formatAmountShort(wallet.balance)}
         </Text>
       </TouchableOpacity>
     );
@@ -52,7 +54,7 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
         </View>
         <Text style={[styles.walletName, { color: Colors.textSecondary }]}>{wallet.name}</Text>
         <Text style={[styles.balance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
-          ₱{wallet.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {formatAmount(wallet.balance)}
         </Text>
       </View>
     </TouchableOpacity>

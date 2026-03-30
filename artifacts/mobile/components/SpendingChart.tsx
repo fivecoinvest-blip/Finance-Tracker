@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { CATEGORY_COLORS } from '@/constants/colors';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
@@ -14,12 +15,13 @@ interface SpendingChartProps {
 
 export function SpendingChart({ months = 6 }: SpendingChartProps) {
   const Colors = useColors();
+  const { currency } = useCurrency();
   const { transactions } = useFinance();
 
   const now = new Date();
   const monthData = Array.from({ length: months }, (_, i) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (months - 1 - i), 1);
-    const label = date.toLocaleDateString('en-PH', { month: 'short' });
+    const label = date.toLocaleDateString(currency.locale, { month: 'short' });
     const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     const income = transactions
@@ -63,6 +65,7 @@ export function SpendingChart({ months = 6 }: SpendingChartProps) {
 
 export function CategoryPieChart() {
   const Colors = useColors();
+  const { formatAmountShort } = useCurrency();
   const { transactions } = useFinance();
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -96,7 +99,7 @@ export function CategoryPieChart() {
               <View style={[styles.categoryBarFill, { width: `${pct}%`, backgroundColor: color }]} />
             </View>
             <Text style={[styles.categoryAmount, { color: Colors.textPrimary }]}>
-              ₱{amount.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              {formatAmountShort(amount)}
             </Text>
           </View>
         );

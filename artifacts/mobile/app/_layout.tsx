@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { FinanceProvider } from "@/context/FinanceContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
@@ -56,9 +57,11 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <ThemeProvider>
-                <FinanceProvider>
-                  <RootLayoutNav />
-                </FinanceProvider>
+                <CurrencyProvider>
+                  <FinanceProvider>
+                    <RootLayoutNav />
+                  </FinanceProvider>
+                </CurrencyProvider>
               </ThemeProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>

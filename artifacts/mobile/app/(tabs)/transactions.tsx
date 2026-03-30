@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TransactionItem } from '@/components/TransactionItem';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
 import type { Transaction } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
@@ -19,11 +20,11 @@ import { useColors } from '@/context/ThemeContext';
 const FILTERS = ['All', 'Income', 'Expense', 'Transfer'] as const;
 type Filter = typeof FILTERS[number];
 
-function groupByDate(transactions: Transaction[]) {
+function groupByDate(transactions: Transaction[], locale: string) {
   const groups: Record<string, Transaction[]> = {};
   for (const tx of transactions) {
     const d = new Date(tx.date);
-    const key = d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const key = d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
     if (!groups[key]) groups[key] = [];
     groups[key].push(tx);
   }
@@ -33,6 +34,7 @@ function groupByDate(transactions: Transaction[]) {
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
+  const { currency } = useCurrency();
   const { transactions } = useFinance();
   const [filter, setFilter] = useState<Filter>('All');
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
@@ -42,7 +44,7 @@ export default function TransactionsScreen() {
     return transactions.filter(t => t.type === filter.toLowerCase());
   }, [transactions, filter]);
 
-  const sections = useMemo(() => groupByDate(filtered), [filtered]);
+  const sections = useMemo(() => groupByDate(filtered, currency.locale), [filtered, currency.locale]);
 
   return (
     <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>

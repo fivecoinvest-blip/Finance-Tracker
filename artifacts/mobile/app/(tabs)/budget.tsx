@@ -17,32 +17,50 @@ import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { CATEGORY_COLORS } from '@/constants/colors';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type Budget, type BudgetPeriod } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
 const CATEGORIES = ['Food', 'Transport', 'Bills', 'Shopping', 'Health', 'Entertainment', 'Education', 'Other'];
 
-function AddBudgetModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const Colors = useColors();
-  const { addBudget } = useFinance();
-  const [category, setCategory] = useState('Food');
-  const [limit, setLimit] = useState('');
-  const [period, setPeriod] = useState<BudgetPeriod>('monthly');
+interface BudgetFormModalProps {
+  visible: boolean;
+  onClose: () => void;
+  editBudget?: Budget;
+}
 
-  const handleAdd = async () => {
+function BudgetFormModal({ visible, onClose, editBudget }: BudgetFormModalProps) {
+  const Colors = useColors();
+  const { currency } = useCurrency();
+  const { addBudget, updateBudget } = useFinance();
+  const isEdit = !!editBudget;
+
+  const [category, setCategory] = useState(editBudget?.category ?? 'Food');
+  const [limit, setLimit] = useState(editBudget ? String(editBudget.limit) : '');
+  const [period, setPeriod] = useState<BudgetPeriod>(editBudget?.period ?? 'monthly');
+
+  const handleSave = async () => {
     if (!limit || parseFloat(limit) <= 0) { Alert.alert('Error', 'Enter a valid budget amount'); return; }
-    await addBudget({ category, limit: parseFloat(limit), period });
+    if (isEdit && editBudget) {
+      await updateBudget(editBudget.id, { category, limit: parseFloat(limit), period });
+    } else {
+      await addBudget({ category, limit: parseFloat(limit), period });
+    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCategory('Food'); setLimit(''); setPeriod('monthly');
+    if (!isEdit) {
+      setCategory('Food'); setLimit(''); setPeriod('monthly');
+    }
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={[styles.modalSheet, { backgroundColor: Colors.card }]}>
           <View style={[styles.handle, { backgroundColor: Colors.border }]} />
-          <Text style={[styles.modalTitle, { color: Colors.textPrimary }]}>Set Budget</Text>
+          <Text style={[styles.modalTitle, { color: Colors.textPrimary }]}>
+            {isEdit ? 'Edit Budget' : 'Set Budget'}
+          </Text>
 
           <Text style={[styles.label, { color: Colors.textSecondary }]}>Category</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
@@ -72,7 +90,7 @@ function AddBudgetModal({ visible, onClose }: { visible: boolean; onClose: () =>
             ))}
           </View>
 
-          <Text style={[styles.label, { color: Colors.textSecondary }]}>Budget Limit (₱)</Text>
+          <Text style={[styles.label, { color: Colors.textSecondary }]}>Budget Limit ({currency.symbol})</Text>
           <TextInput
             style={[styles.input, { backgroundColor: Colors.backgroundDark, color: Colors.textPrimary, borderColor: Colors.border }]}
             placeholder="0.00"
@@ -86,8 +104,8 @@ function AddBudgetModal({ visible, onClose }: { visible: boolean; onClose: () =>
             <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: Colors.backgroundDark }]} onPress={onClose}>
               <Text style={[styles.cancelText, { color: Colors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.addBtn, { backgroundColor: Colors.accent }]} onPress={handleAdd}>
-              <Text style={styles.addBtnText}>Set Budget</Text>
+            <TouchableOpacity style={[styles.addBtn, { backgroundColor: Colors.accent }]} onPress={handleSave}>
+              <Text style={styles.addBtnText}>{isEdit ? 'Save Changes' : 'Set Budget'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,14 +117,19 @@ function AddBudgetModal({ visible, onClose }: { visible: boolean; onClose: () =>
 export default function BudgetScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
+  const { formatAmountShort } = useCurrency();
   const { budgets, deleteBudget, getBudgetUsage, getCategorySpending } = useFinance();
   const [showAdd, setShowAdd] = useState(false);
+  const [editBudget, setEditBudget] = useState<Budget | undefined>(undefined);
   const [budgetToDelete, setBudgetToDelete] = useState<Budget | undefined>(undefined);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
   return (
     <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
-      <AddBudgetModal visible={showAdd} onClose={() => setShowAdd(false)} />
+      <BudgetFormModal visible={showAdd} onClose={() => setShowAdd(false)} />
+      {editBudget && (
+        <BudgetFormModal visible={true} onClose={() => setEditBudget(undefined)} editBudget={editBudget} />
+      )}
       <ConfirmModal
         visible={!!budgetToDelete}
         title="Delete Budget"
@@ -158,10 +181,16 @@ export default function BudgetScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.deleteBtn, { backgroundColor: Colors.danger + '12' }]}
+                    style={[styles.iconBtn, { backgroundColor: Colors.accent + '12' }]}
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setEditBudget(b); }}
+                  >
+                    <MaterialIcons name="edit" size={18} color={Colors.accent} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.iconBtn, { backgroundColor: Colors.danger + '12' }]}
                     onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setBudgetToDelete(b); }}
                   >
-                    <MaterialIcons name="delete-outline" size={20} color={Colors.danger} />
+                    <MaterialIcons name="delete-outline" size={18} color={Colors.danger} />
                   </TouchableOpacity>
                 </View>
 
@@ -171,17 +200,17 @@ export default function BudgetScreen() {
                   <View>
                     <Text style={[styles.statsLabel, { color: Colors.textMuted }]}>Spent</Text>
                     <Text style={[styles.statsValue, { color: usage > 1 ? Colors.danger : Colors.textPrimary }]}>
-                      ₱{spent.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                      {formatAmountShort(spent)}
                     </Text>
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <Text style={[styles.statsLabel, { color: Colors.textMuted }]}>Limit</Text>
-                    <Text style={[styles.statsValue, { color: Colors.textPrimary }]}>₱{b.limit.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</Text>
+                    <Text style={[styles.statsValue, { color: Colors.textPrimary }]}>{formatAmountShort(b.limit)}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={[styles.statsLabel, { color: Colors.textMuted }]}>Remaining</Text>
                     <Text style={[styles.statsValue, { color: remaining < 0 ? Colors.danger : Colors.success }]}>
-                      ₱{Math.abs(remaining).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                      {formatAmountShort(Math.abs(remaining))}
                     </Text>
                   </View>
                 </View>
@@ -206,13 +235,13 @@ const styles = StyleSheet.create({
   emptyBtn: { borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28, marginTop: 24 },
   emptyBtnText: { color: '#FFFFFF', fontWeight: '700' as const, fontSize: 15 },
   budgetCard: { marginBottom: 12 },
-  budgetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 10 },
+  budgetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 },
   catDot: { width: 12, height: 12, borderRadius: 6 },
   budgetCat: { fontSize: 16, fontWeight: '700' as const },
   budgetPeriod: { fontSize: 12 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontWeight: '700' as const },
-  deleteBtn: { width: 34, height: 34, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginLeft: 4 },
+  iconBtn: { width: 32, height: 32, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   progressBar: { marginBottom: 12 },
   budgetStats: { flexDirection: 'row', justifyContent: 'space-between' },
   statsLabel: { fontSize: 11 },

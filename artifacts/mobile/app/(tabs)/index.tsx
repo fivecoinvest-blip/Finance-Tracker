@@ -18,12 +18,14 @@ import { WalletCard } from '@/components/WalletCard';
 import { Card } from '@/components/ui/Card';
 import { GradientCard } from '@/components/ui/GradientCard';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, xpForNextLevel } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
+  const { formatAmount, formatAmountShort } = useCurrency();
   const {
     wallets, transactions, budgets, stats,
     getTotalBalance, getMonthlyIncome, getMonthlyExpenses, getBudgetUsage,
@@ -75,9 +77,7 @@ export default function DashboardScreen() {
 
         <GradientCard colors={['#FF6B35', '#FF8C5A', '#FF6B35']} style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>
-            ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
+          <Text style={styles.balanceAmount}>{formatAmount(totalBalance)}</Text>
           <View style={styles.incomeExpenseRow}>
             <View style={styles.incomeExpenseItem}>
               <View style={styles.incomeIcon}>
@@ -85,7 +85,7 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.ieLabel}>Income</Text>
-                <Text style={styles.ieAmount}>₱{monthlyIncome.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</Text>
+                <Text style={styles.ieAmount}>{formatAmountShort(monthlyIncome)}</Text>
               </View>
             </View>
             <View style={styles.divider} />
@@ -95,7 +95,7 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.ieLabel}>Expenses</Text>
-                <Text style={styles.ieAmount}>₱{monthlyExpenses.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</Text>
+                <Text style={styles.ieAmount}>{formatAmountShort(monthlyExpenses)}</Text>
               </View>
             </View>
           </View>
@@ -128,7 +128,7 @@ export default function DashboardScreen() {
             <View style={styles.xpBarContainer}>
               <ProgressBar progress={xpProgress} color={Colors.accent} height={6} />
             </View>
-            <Text style={[styles.xpText, { color: Colors.textMuted }]}>{stats.xp}/{xpNeeded} XP</Text>
+            <Text style={[styles.xpLabel, { color: Colors.textMuted }]}>{stats.xp}/{xpNeeded} XP</Text>
           </View>
         </View>
 
@@ -167,10 +167,10 @@ export default function DashboardScreen() {
                   <ProgressBar progress={usage} />
                   <View style={styles.budgetFooter}>
                     <Text style={[styles.budgetSpent, { color: Colors.textSecondary }]}>
-                      ₱{(usage * b.limit).toLocaleString('en-PH', { minimumFractionDigits: 0 })} spent
+                      {formatAmountShort(usage * b.limit)} spent
                     </Text>
                     <Text style={[styles.budgetLimit, { color: Colors.textMuted }]}>
-                      of ₱{b.limit.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                      of {formatAmountShort(b.limit)}
                     </Text>
                   </View>
                 </Card>
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   xpSection: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 8 },
   levelText: { fontWeight: '700' as const, fontSize: 13 },
   xpBarContainer: { flex: 1 },
-  xpText: { fontSize: 11 },
+  xpLabel: { fontSize: 11 },
   section: { marginBottom: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700' as const },

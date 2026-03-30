@@ -14,8 +14,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { useColors } from '@/context/ThemeContext';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type Wallet, type WalletType } from '@/context/FinanceContext';
+import { useColors } from '@/context/ThemeContext';
 
 const WALLET_TYPES: { type: WalletType; label: string; icon: string; color: string }[] = [
   { type: 'cash', label: 'Cash', icon: 'payments', color: '#27AE60' },
@@ -90,7 +91,7 @@ function WalletFormModal({ visible, onClose, editWallet }: WalletFormModalProps)
           </View>
 
           <Text style={[styles.inputLabel, { color: Colors.textSecondary }]}>
-            {isEdit ? 'Balance (₱)' : 'Starting Balance (₱)'}
+            {isEdit ? 'Balance' : 'Starting Balance'}
           </Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: Colors.backgroundDark, color: Colors.textPrimary, borderColor: Colors.border }]}
@@ -117,6 +118,7 @@ function WalletFormModal({ visible, onClose, editWallet }: WalletFormModalProps)
 
 function WalletRow({ wallet, onEdit, onDelete }: { wallet: Wallet; onEdit: () => void; onDelete: () => void }) {
   const Colors = useColors();
+  const { formatAmount } = useCurrency();
   return (
     <View style={[styles.walletRow, { backgroundColor: Colors.card, borderLeftColor: wallet.color }]}>
       <View style={[styles.walletIconBg, { backgroundColor: wallet.color + '20' }]}>
@@ -127,7 +129,7 @@ function WalletRow({ wallet, onEdit, onDelete }: { wallet: Wallet; onEdit: () =>
         <Text style={[styles.walletType, { color: Colors.textMuted }]}>{wallet.type.charAt(0).toUpperCase() + wallet.type.slice(1)}</Text>
       </View>
       <Text style={[styles.walletBalance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
-        ₱{wallet.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {formatAmount(wallet.balance)}
       </Text>
       <TouchableOpacity style={[styles.actionBtn, { backgroundColor: Colors.accent + '18' }]} onPress={onEdit}>
         <MaterialIcons name="edit" size={18} color={Colors.accent} />
@@ -143,6 +145,7 @@ export default function WalletsScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
   const { wallets, deleteWallet, getTotalBalance } = useFinance();
+  const { formatAmount } = useCurrency();
   const [showAdd, setShowAdd] = useState(false);
   const [editWallet, setEditWallet] = useState<Wallet | undefined>(undefined);
   const [walletToDelete, setWalletToDelete] = useState<Wallet | undefined>(undefined);
@@ -184,7 +187,7 @@ export default function WalletsScreen() {
         <View style={[styles.totalCard, { backgroundColor: Colors.card }]}>
           <Text style={[styles.totalLabel, { color: Colors.textMuted }]}>Net Worth</Text>
           <Text style={[styles.totalAmount, { color: Colors.textPrimary }]}>
-            ₱{getTotalBalance().toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatAmount(getTotalBalance())}
           </Text>
           <Text style={[styles.walletCount, { color: Colors.textMuted }]}>{wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</Text>
         </View>

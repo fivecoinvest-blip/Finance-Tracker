@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/constants/colors';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 function DetailRow({ icon, label, value }: { icon: string; label: string; value: string }) {
   const Colors = useColors();
@@ -23,6 +24,7 @@ export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const Colors = useColors();
+  const { formatAmount, formatDate } = useCurrency();
   const { transactions, deleteTransaction, getWalletById } = useFinance();
   const [showConfirm, setShowConfirm] = useState(false);
   const topPadding = Platform.OS === 'web' ? 16 : insets.top;
@@ -60,9 +62,17 @@ export default function TransactionDetailScreen() {
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>Transaction Detail</Text>
-        <TouchableOpacity onPress={() => setShowConfirm(true)} style={[styles.deleteBtn, { backgroundColor: Colors.danger + '20' }]}>
-          <MaterialIcons name="delete-outline" size={22} color={Colors.danger} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
+            style={[styles.editBtn, { backgroundColor: Colors.accent + '20' }]}
+          >
+            <MaterialIcons name="edit" size={20} color={Colors.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowConfirm(true)} style={[styles.deleteBtn, { backgroundColor: Colors.danger + '20' }]}>
+            <MaterialIcons name="delete-outline" size={20} color={Colors.danger} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -71,13 +81,13 @@ export default function TransactionDetailScreen() {
         </View>
 
         <Text style={[styles.amount, { color: amountColor }]}>
-          {sign}₱{tx.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {sign}{formatAmount(tx.amount)}
         </Text>
         <Text style={[styles.category, { color: Colors.textSecondary }]}>{tx.category}</Text>
         {tx.description ? <Text style={[styles.description, { color: Colors.textMuted }]}>{tx.description}</Text> : null}
 
         <View style={[styles.detailsCard, { backgroundColor: Colors.card }]}>
-          <DetailRow icon="calendar-today" label="Date" value={new Date(tx.date).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })} />
+          <DetailRow icon="calendar-today" label="Date" value={formatDate(tx.date, { year: 'numeric', month: 'long', day: 'numeric' })} />
           <DetailRow icon="account-balance-wallet" label="Wallet" value={wallet?.name ?? 'Unknown'} />
           {toWallet && <DetailRow icon="swap-horiz" label="To Wallet" value={toWallet.name} />}
           <DetailRow icon="repeat" label="Recurring" value={tx.recurring === 'none' ? 'One-time' : tx.recurring.charAt(0).toUpperCase() + tx.recurring.slice(1)} />
@@ -94,6 +104,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
   backBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' as const },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  editBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   deleteBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   content: { flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 20 },
   iconBig: { width: 80, height: 80, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },

@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
+import { CURRENCIES, useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors, useTheme } from '@/context/ThemeContext';
 
@@ -169,7 +170,9 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
   const { isDark, toggleTheme } = useTheme();
+  const { currency, setCurrencyByCode } = useCurrency();
   const { transactions, wallets, budgets, stats } = useFinance();
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [adsRemoved, setAdsRemoved] = useToggle(SETTINGS_KEYS.adsRemoved, false);
   const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
   const [streakReminders, setStreakReminders] = useToggle(SETTINGS_KEYS.streakReminders, true);
@@ -275,6 +278,34 @@ export default function SettingsScreen() {
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
 
+      <Modal visible={showCurrencyPicker} animationType="slide" transparent onRequestClose={() => setShowCurrencyPicker(false)}>
+        <View style={styles.overlay}>
+          <View style={[styles.sheet, { backgroundColor: Colors.card }]}>
+            <View style={[styles.handle, { backgroundColor: Colors.border }]} />
+            <Text style={[styles.sheetTitle, { color: Colors.textPrimary }]}>Select Currency</Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+              {CURRENCIES.map(c => (
+                <TouchableOpacity
+                  key={c.code}
+                  style={[styles.currencyRow, { borderBottomColor: Colors.border }, c.code === currency.code && { backgroundColor: Colors.accent + '12' }]}
+                  onPress={() => { setCurrencyByCode(c.code); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowCurrencyPicker(false); }}
+                >
+                  <Text style={[styles.currencySymbol, { color: Colors.textSecondary }]}>{c.symbol}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.currencyCode, { color: Colors.textPrimary }]}>{c.code}</Text>
+                    <Text style={[styles.currencyName, { color: Colors.textMuted }]}>{c.name}</Text>
+                  </View>
+                  {c.code === currency.code && <MaterialIcons name="check-circle" size={20} color={Colors.accent} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: Colors.backgroundDark, marginTop: 12 }]} onPress={() => setShowCurrencyPicker(false)}>
+              <Text style={[styles.cancelText, { color: Colors.textSecondary }]}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View style={[styles.header, { paddingTop: topPadding + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
@@ -330,7 +361,7 @@ export default function SettingsScreen() {
 
         <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Appearance</Text>
         <Card style={styles.settingsGroup}>
-          <View style={[styles.settingsRow, styles.lastRow]}>
+          <View style={[styles.settingsRow, { borderBottomColor: Colors.border }]}>
             <MaterialIcons name="dark-mode" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
             <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Dark Mode</Text>
             <Switch
@@ -340,6 +371,15 @@ export default function SettingsScreen() {
               thumbColor="#fff"
             />
           </View>
+          <TouchableOpacity style={[styles.settingsRow, styles.lastRow]} onPress={() => setShowCurrencyPicker(true)} activeOpacity={0.7}>
+            <MaterialIcons name="attach-money" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Currency</Text>
+              <Text style={[styles.settingsSubtext, { color: Colors.textMuted }]}>{currency.code} — {currency.name}</Text>
+            </View>
+            <Text style={[styles.currencyBadge, { color: Colors.accent }]}>{currency.symbol}</Text>
+            <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
+          </TouchableOpacity>
         </Card>
 
         <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Data</Text>
@@ -451,4 +491,9 @@ const styles = StyleSheet.create({
   policyDate: { fontSize: 12, marginBottom: 16 },
   policyHeading: { fontSize: 15, fontWeight: '700' as const, marginTop: 16, marginBottom: 6 },
   policyBody: { fontSize: 14, lineHeight: 22 },
+  currencyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1 },
+  currencySymbol: { fontSize: 20, fontWeight: '700' as const, width: 28, textAlign: 'center' },
+  currencyCode: { fontSize: 15, fontWeight: '600' as const },
+  currencyName: { fontSize: 12, marginTop: 1 },
+  currencyBadge: { fontSize: 18, fontWeight: '700' as const, marginRight: 6 },
 });
