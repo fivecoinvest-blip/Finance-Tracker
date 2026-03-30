@@ -145,12 +145,16 @@ export default function BudgetScreen() {
                   </View>
                   <TouchableOpacity
                     style={styles.deleteBtn}
-                    onPress={() => Alert.alert('Delete Budget', 'Remove this budget?', [
-                      { text: 'Cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: () => deleteBudget(b.id) },
-                    ])}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      Alert.alert('Delete Budget', `Remove the ${b.category} budget?`, [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', style: 'destructive', onPress: () => deleteBudget(b.id) },
+                      ]);
+                    }}
                   >
-                    <MaterialIcons name="delete-outline" size={18} color={Colors.textMuted} />
+                    <MaterialIcons name="delete-outline" size={20} color={Colors.danger} />
                   </TouchableOpacity>
                 </View>
 
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
   budgetPeriod: { color: Colors.textMuted, fontSize: 12 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontWeight: '700' as const },
-  deleteBtn: { padding: 4, marginLeft: 4 },
+  deleteBtn: { width: 34, height: 34, borderRadius: 9, backgroundColor: Colors.danger + '12', justifyContent: 'center', alignItems: 'center', marginLeft: 4 },
   progressBar: { marginBottom: 12 },
   budgetStats: { flexDirection: 'row', justifyContent: 'space-between' },
   statsLabel: { color: Colors.textMuted, fontSize: 11 },

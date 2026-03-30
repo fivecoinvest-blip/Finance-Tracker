@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_ICONS, Colors } from '@/constants/colors';
 import type { Transaction } from '@/context/FinanceContext';
 import { useFinance } from '@/context/FinanceContext';
@@ -20,7 +21,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function TransactionItem({ transaction, onPress }: TransactionItemProps) {
-  const { getWalletById } = useFinance();
+  const { getWalletById, deleteTransaction } = useFinance();
   const wallet = getWalletById(transaction.walletId);
   const iconName = CATEGORY_ICONS[transaction.category] ?? 'category';
   const iconColor = CATEGORY_COLORS[transaction.category] ?? Colors.textSecondary;
@@ -29,6 +30,23 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
     : transaction.type === 'transfer' ? Colors.transfer
     : Colors.expense;
   const amountSign = transaction.type === 'income' ? '+' : transaction.type === 'transfer' ? '↔' : '-';
+
+  const handleDelete = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      'Delete Transaction',
+      'Remove this transaction? This will reverse the balance change.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete', style: 'destructive', onPress: async () => {
+            await deleteTransaction(transaction.id);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          }
+        },
+      ]
+    );
+  };
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.75}>
@@ -47,6 +65,9 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
         </Text>
         <Text style={styles.date}>{formatDate(transaction.date)}</Text>
       </View>
+      <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <MaterialIcons name="delete-outline" size={18} color={Colors.textMuted} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
@@ -67,7 +88,8 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginLeft: 12 },
   category: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' as const },
   description: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
-  rightSide: { alignItems: 'flex-end' },
+  rightSide: { alignItems: 'flex-end', marginRight: 6 },
   amount: { fontSize: 15, fontWeight: '700' as const },
   date: { color: Colors.textMuted, fontSize: 11, marginTop: 2 },
+  deleteBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.danger + '12', justifyContent: 'center', alignItems: 'center', marginLeft: 4 },
 });
