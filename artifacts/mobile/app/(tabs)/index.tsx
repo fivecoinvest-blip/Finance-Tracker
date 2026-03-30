@@ -1,8 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   Platform,
   ScrollView,
   StyleSheet,
@@ -19,8 +21,37 @@ import { Card } from '@/components/ui/Card';
 import { GradientCard } from '@/components/ui/GradientCard';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useCurrency } from '@/context/CurrencyContext';
-import { useFinance, xpForNextLevel } from '@/context/FinanceContext';
+import { useFinance, xpProgressInLevel } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
+
+function useCountUp(target: number, duration = 900): number {
+  const animRef = useRef(new Animated.Value(0));
+  const [display, setDisplay] = useState(0);
+  const prevRef = useRef(0);
+  const listenerRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    prevRef.current = target;
+
+    if (listenerRef.current) animRef.current.removeListener(listenerRef.current);
+    animRef.current.setValue(from);
+
+    listenerRef.current = animRef.current.addListener(({ value }) => setDisplay(value));
+    Animated.timing(animRef.current, {
+      toValue: target,
+      duration,
+      easing: Easing.out(Easing.exp),
+      useNativeDriver: false,
+    }).start();
+
+    return () => {
+      if (listenerRef.current) animRef.current.removeListener(listenerRef.current);
+    };
+  }, [target]);
+
+  return display;
+}
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -36,8 +67,21 @@ export default function DashboardScreen() {
   const monthlyExpenses = getMonthlyExpenses();
   const recentTx = transactions.slice(0, 5);
 
-  const xpNeeded = xpForNextLevel(stats.level);
-  const xpProgress = xpNeeded > 0 ? stats.xp / xpNeeded : 0;
+  const xpProgress = xpProgressInLevel(stats.xp);
+
+  // Animated balance count-up
+  const animatedBalance = useCountUp(totalBalance);
+
+  // Balance card scale-pop on mount
+  const balanceScale = useRef(new Animated.Value(0.88)).current;
+  useEffect(() => {
+    Animated.spring(balanceScale, {
+      toValue: 1,
+      tension: 60,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const topBudgets = budgets.slice(0, 3);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
@@ -98,9 +142,10 @@ export default function DashboardScreen() {
           <CashperMascot mood={mascotMood} size={70} showMessage={true} message={mascotMessage} />
         </View>
 
+        <Animated.View style={{ transform: [{ scale: balanceScale }] }}>
         <GradientCard colors={['#FF6B35', '#FF8C5A', '#FF6B35']} style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>{formatAmount(totalBalance)}</Text>
+          <Text style={styles.balanceAmount}>{formatAmount(animatedBalance)}</Text>
           <View style={styles.incomeExpenseRow}>
             <View style={styles.incomeExpenseItem}>
               <View style={styles.incomeIcon}>
@@ -123,6 +168,7 @@ export default function DashboardScreen() {
             </View>
           </View>
         </GradientCard>
+        </Animated.View>
 
         <View style={[styles.quickActions, { backgroundColor: Colors.card }]}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/add-transaction'); }}>
@@ -151,7 +197,7 @@ export default function DashboardScreen() {
             <View style={styles.xpBarContainer}>
               <ProgressBar progress={xpProgress} color={Colors.accent} height={6} />
             </View>
-            <Text style={[styles.xpLabel, { color: Colors.textMuted }]}>{stats.xp}/{xpNeeded} XP</Text>
+            <Text style={[styles.xpLabel, { color: Colors.textMuted }]}>{stats.xp} XP</Text>
           </View>
         </View>
 

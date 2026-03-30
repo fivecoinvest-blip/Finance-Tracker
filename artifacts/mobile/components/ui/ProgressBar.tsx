@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
 import { useColors } from '@/context/ThemeContext';
 
 interface ProgressBarProps {
@@ -8,7 +8,6 @@ interface ProgressBarProps {
   backgroundColor?: string;
   height?: number;
   style?: ViewStyle;
-  animated?: boolean;
 }
 
 export function ProgressBar({ progress, color, backgroundColor, height = 8, style }: ProgressBarProps) {
@@ -17,9 +16,26 @@ export function ProgressBar({ progress, color, backgroundColor, height = 8, styl
   const barColor = color ?? (progress > 1 ? Colors.danger : progress > 0.8 ? Colors.warning : Colors.accent);
   const bgColor = backgroundColor ?? Colors.border;
 
+  const animValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(animValue, {
+      toValue: clampedProgress,
+      tension: 55,
+      friction: 9,
+      useNativeDriver: false,
+    }).start();
+  }, [clampedProgress]);
+
+  const animatedWidth = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={[styles.container, { backgroundColor: bgColor, height }, style]}>
-      <View style={[styles.fill, { width: `${clampedProgress * 100}%`, backgroundColor: barColor, height }]} />
+      <Animated.View style={[styles.fill, { width: animatedWidth, backgroundColor: barColor, height }]} />
     </View>
   );
 }
