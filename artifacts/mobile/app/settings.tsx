@@ -24,7 +24,6 @@ import { useSecurity } from '@/context/SecurityContext';
 import { useColors, useTheme } from '@/context/ThemeContext';
 
 const SETTINGS_KEYS = {
-  adsRemoved: '@cashper_ads_removed',
   budgetAlerts: '@cashper_budget_alerts',
   streakReminders: '@cashper_streak_reminders',
 };
@@ -175,31 +174,12 @@ export default function SettingsScreen() {
   const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock } = useSecurity();
   const { transactions, wallets, budgets, stats } = useFinance();
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
-  const [adsRemoved, setAdsRemoved] = useToggle(SETTINGS_KEYS.adsRemoved, false);
   const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
   const [streakReminders, setStreakReminders] = useToggle(SETTINGS_KEYS.streakReminders, true);
   const [showRestore, setShowRestore] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-
-  const handleRemoveAds = () => {
-    if (adsRemoved) return;
-    Alert.alert(
-      'Remove Ads Forever',
-      'Pay ₱999 once and enjoy Cashper ad-free forever.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Purchase ₱999', onPress: async () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            await setAdsRemoved(true);
-            Alert.alert('Thank you!', 'Ads removed permanently. Enjoy Cashper ad-free!');
-          }
-        },
-      ]
-    );
-  };
 
   const handleBackup = async () => {
     try {
@@ -317,26 +297,6 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Card style={[styles.proCard, { borderColor: Colors.accent + '40', borderWidth: 1 }]}>
-          <View style={styles.proHeader}>
-            <MaterialIcons name="workspace-premium" size={28} color={Colors.accent} />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={[styles.proTitle, { color: Colors.textPrimary }]}>Remove Ads</Text>
-              <Text style={[styles.proDesc, { color: Colors.textMuted }]}>One-time payment. Enjoy Cashper ad-free forever.</Text>
-            </View>
-          </View>
-          {adsRemoved ? (
-            <View style={[styles.adsRemovedBadge, { backgroundColor: Colors.success + '20' }]}>
-              <MaterialIcons name="check-circle" size={16} color={Colors.success} />
-              <Text style={[styles.adsRemovedText, { color: Colors.success }]}>Ads removed — Thank you!</Text>
-            </View>
-          ) : (
-            <TouchableOpacity style={[styles.purchaseBtn, { backgroundColor: Colors.accent }]} onPress={handleRemoveAds}>
-              <Text style={styles.purchaseBtnText}>Remove Ads — {currency.symbol}999</Text>
-            </TouchableOpacity>
-          )}
-        </Card>
-
         <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Notifications</Text>
         <Card style={styles.settingsGroup}>
           <View style={[styles.settingsRow, { borderBottomColor: Colors.border }]}>
@@ -484,14 +444,6 @@ const styles = StyleSheet.create({
   backBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' as const },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
-  proCard: { marginBottom: 24 },
-  proHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  proTitle: { fontSize: 16, fontWeight: '700' as const },
-  proDesc: { fontSize: 13, marginTop: 2 },
-  adsRemovedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14 },
-  adsRemovedText: { fontSize: 13, fontWeight: '600' as const },
-  purchaseBtn: { borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  purchaseBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' as const },
   sectionLabel: { fontSize: 12, fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8, marginTop: 4 },
   settingsGroup: { marginBottom: 20, padding: 0, overflow: 'hidden' },
   settingsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1 },
