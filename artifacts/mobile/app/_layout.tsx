@@ -8,14 +8,18 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LockScreen } from "@/components/LockScreen";
+import { useCurrency } from "@/context/CurrencyContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { useFinance } from "@/context/FinanceContext";
 import { FinanceProvider } from "@/context/FinanceContext";
+import { useNotifications } from "@/context/NotificationContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { SecurityProvider, useSecurity } from "@/context/SecurityContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
@@ -31,6 +35,26 @@ function LockGate({ children }: { children: React.ReactNode }) {
       {isLocked && <LockScreen />}
     </>
   );
+}
+
+function BudgetAlertWatcher() {
+  const { transactions, budgets } = useFinance();
+  const { checkBudgetAlerts } = useNotifications();
+  const { currency } = useCurrency();
+  const prevLengthRef = useRef(transactions.length);
+
+  useEffect(() => {
+    const prev = prevLengthRef.current;
+    prevLengthRef.current = transactions.length;
+    if (transactions.length > prev) {
+      const newest = transactions[0];
+      if (newest?.type === 'expense') {
+        checkBudgetAlerts(newest.category, transactions, budgets, currency.symbol);
+      }
+    }
+  }, [transactions, budgets, checkBudgetAlerts, currency.symbol]);
+
+  return null;
 }
 
 function RootLayoutNav() {
@@ -71,11 +95,14 @@ export default function RootLayout() {
               <ThemeProvider>
                 <SecurityProvider>
                   <CurrencyProvider>
-                    <FinanceProvider>
-                      <LockGate>
-                        <RootLayoutNav />
-                      </LockGate>
-                    </FinanceProvider>
+                    <NotificationProvider>
+                      <FinanceProvider>
+                        <BudgetAlertWatcher />
+                        <LockGate>
+                          <RootLayoutNav />
+                        </LockGate>
+                      </FinanceProvider>
+                    </NotificationProvider>
                   </CurrencyProvider>
                 </SecurityProvider>
               </ThemeProvider>

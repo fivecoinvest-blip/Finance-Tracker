@@ -20,13 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
 import { CURRENCIES, useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { useSecurity } from '@/context/SecurityContext';
 import { useColors, useTheme } from '@/context/ThemeContext';
-
-const SETTINGS_KEYS = {
-  budgetAlerts: '@cashper_budget_alerts',
-  streakReminders: '@cashper_streak_reminders',
-};
 
 function useToggle(key: string, defaultValue = true) {
   const [value, setValue] = useState(defaultValue);
@@ -179,8 +175,7 @@ export default function SettingsScreen() {
   const [pinFirst, setPinFirst]         = useState('');
   const [pinInput, setPinInput]         = useState('');
   const [pinError, setPinError]         = useState('');
-  const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
-  const [streakReminders, setStreakReminders] = useToggle(SETTINGS_KEYS.streakReminders, true);
+  const { budgetAlerts, streakReminders, toggleBudgetAlerts, toggleStreakReminders } = useNotifications();
   const [showRestore, setShowRestore] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -351,7 +346,7 @@ export default function SettingsScreen() {
             <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Budget Alerts</Text>
             <Switch
               value={budgetAlerts}
-              onValueChange={(v) => { setBudgetAlerts(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              onValueChange={(v) => { toggleBudgetAlerts(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
               trackColor={{ true: Colors.accent, false: Colors.border }}
               thumbColor="#fff"
             />
@@ -361,7 +356,7 @@ export default function SettingsScreen() {
             <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Streak Reminders</Text>
             <Switch
               value={streakReminders}
-              onValueChange={(v) => { setStreakReminders(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              onValueChange={(v) => { toggleStreakReminders(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
               trackColor={{ true: Colors.accent, false: Colors.border }}
               thumbColor="#fff"
             />
