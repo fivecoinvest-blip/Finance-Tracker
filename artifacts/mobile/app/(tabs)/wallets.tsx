@@ -164,7 +164,7 @@ export default function WalletsScreen() {
       <ConfirmModal
         visible={!!walletToDelete}
         title="Delete Wallet"
-        message={`Remove "${walletToDelete?.name}"? This will not delete its transactions.`}
+        message={`Remove "${walletToDelete?.name}"? Its transactions will also be deleted and XP reversed.`}
         confirmLabel="Delete"
         destructive
         onConfirm={handleDeleteConfirmed}

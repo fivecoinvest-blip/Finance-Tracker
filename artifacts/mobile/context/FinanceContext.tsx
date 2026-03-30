@@ -230,10 +230,29 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   }, [wallets]);
 
   const deleteWallet = useCallback(async (id: string) => {
-    const updated = wallets.filter(w => w.id !== id);
-    setWallets(updated);
-    await saveWallets(updated);
-  }, [wallets]);
+    const updatedWallets = wallets.filter(w => w.id !== id);
+
+    // Remove all transactions that belonged to this wallet (either source or destination)
+    const removedTxs = transactions.filter(t => t.walletId === id || t.toWalletId === id);
+    const updatedTx = transactions.filter(t => t.walletId !== id && t.toWalletId !== id);
+
+    // Undo 10 XP and 1 totalTransaction for each removed transaction
+    const xpToRemove = removedTxs.length * 10;
+    const newXP = Math.max(0, stats.xp - xpToRemove);
+    const updatedStats: UserStats = {
+      ...stats,
+      xp: newXP,
+      level: xpToLevel(newXP),
+      totalTransactions: Math.max(0, stats.totalTransactions - removedTxs.length),
+    };
+
+    setWallets(updatedWallets);
+    setTransactions(updatedTx);
+    setStats(updatedStats);
+    await saveWallets(updatedWallets);
+    await saveTransactions(updatedTx);
+    await saveStats(updatedStats);
+  }, [wallets, transactions, stats]);
 
   const addTransaction = useCallback(async (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -272,6 +291,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     const tx = transactions.find(t => t.id === id);
     if (!tx) return;
 
+    // Reverse wallet balance
     let updatedWallets = [...wallets];
     if (tx.type === 'income') {
       updatedWallets = updatedWallets.map(w => w.id === tx.walletId ? { ...w, balance: w.balance - tx.amount } : w);
@@ -285,12 +305,25 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    const updated = transactions.filter(t => t.id !== id);
-    setTransactions(updated);
+    const updatedTx = transactions.filter(t => t.id !== id);
+
+    // Undo stats: subtract the 10 base XP earned for logging this transaction
+    // and decrement the transaction counter. Achievements stay — they're a record of past effort.
+    const newXP = Math.max(0, stats.xp - 10);
+    const updatedStats: UserStats = {
+      ...stats,
+      xp: newXP,
+      level: xpToLevel(newXP),
+      totalTransactions: Math.max(0, stats.totalTransactions - 1),
+    };
+
+    setTransactions(updatedTx);
     setWallets(updatedWallets);
-    await saveTransactions(updated);
+    setStats(updatedStats);
+    await saveTransactions(updatedTx);
     await saveWallets(updatedWallets);
-  }, [transactions, wallets]);
+    await saveStats(updatedStats);
+  }, [transactions, wallets, stats]);
 
   const addBudget = useCallback(async (budget: Omit<Budget, 'id' | 'createdAt'>) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
