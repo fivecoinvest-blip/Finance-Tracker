@@ -14,9 +14,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { CATEGORY_COLORS } from '@/constants/colors';
-import { useFinance, type BudgetPeriod } from '@/context/FinanceContext';
+import { useFinance, type Budget, type BudgetPeriod } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
 
 const CATEGORIES = ['Food', 'Transport', 'Bills', 'Shopping', 'Health', 'Entertainment', 'Education', 'Other'];
@@ -100,11 +101,21 @@ export default function BudgetScreen() {
   const Colors = useColors();
   const { budgets, deleteBudget, getBudgetUsage, getCategorySpending } = useFinance();
   const [showAdd, setShowAdd] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<Budget | undefined>(undefined);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
   return (
     <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
       <AddBudgetModal visible={showAdd} onClose={() => setShowAdd(false)} />
+      <ConfirmModal
+        visible={!!budgetToDelete}
+        title="Delete Budget"
+        message={`Remove the ${budgetToDelete?.category} budget?`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => { if (budgetToDelete) { deleteBudget(budgetToDelete.id); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); } setBudgetToDelete(undefined); }}
+        onCancel={() => setBudgetToDelete(undefined)}
+      />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
@@ -148,14 +159,7 @@ export default function BudgetScreen() {
                   </View>
                   <TouchableOpacity
                     style={[styles.deleteBtn, { backgroundColor: Colors.danger + '12' }]}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                      Alert.alert('Delete Budget', `Remove the ${b.category} budget?`, [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Delete', style: 'destructive', onPress: () => deleteBudget(b.id) },
-                      ]);
-                    }}
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setBudgetToDelete(b); }}
                   >
                     <MaterialIcons name="delete-outline" size={20} color={Colors.danger} />
                   </TouchableOpacity>

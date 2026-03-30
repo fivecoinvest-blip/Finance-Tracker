@@ -1,11 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/constants/colors';
 import type { Transaction } from '@/context/FinanceContext';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -24,6 +25,8 @@ function formatDate(dateStr: string): string {
 export function TransactionItem({ transaction, onPress }: TransactionItemProps) {
   const Colors = useColors();
   const { getWalletById, deleteTransaction } = useFinance();
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const wallet = getWalletById(transaction.walletId);
   const iconName = CATEGORY_ICONS[transaction.category] ?? 'category';
   const iconColor = CATEGORY_COLORS[transaction.category] ?? Colors.textSecondary;
@@ -33,50 +36,49 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
     : Colors.expense;
   const amountSign = transaction.type === 'income' ? '+' : transaction.type === 'transfer' ? '↔' : '-';
 
-  const handleDelete = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Delete Transaction',
-      'Remove this transaction? This will reverse the balance change.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete', style: 'destructive', onPress: async () => {
-            await deleteTransaction(transaction.id);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          }
-        },
-      ]
-    );
+  const handleDeleteConfirmed = async () => {
+    setShowConfirm(false);
+    await deleteTransaction(transaction.id);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors.card }]}>
-      <TouchableOpacity style={styles.mainArea} onPress={onPress} activeOpacity={0.75}>
-        <View style={[styles.iconBg, { backgroundColor: iconColor + '18' }]}>
-          <MaterialIcons name={iconName as any} size={22} color={iconColor} />
-        </View>
-        <View style={styles.info}>
-          <Text style={[styles.category, { color: Colors.textPrimary }]}>{transaction.category}</Text>
-          <Text style={[styles.description, { color: Colors.textMuted }]} numberOfLines={1}>
-            {transaction.description || wallet?.name || 'No description'}
-          </Text>
-        </View>
-        <View style={styles.rightSide}>
-          <Text style={[styles.amount, { color: amountColor }]}>
-            {amountSign}₱{transaction.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-          <Text style={[styles.date, { color: Colors.textMuted }]}>{formatDate(transaction.date)}</Text>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.deleteBtn, { backgroundColor: Colors.danger + '15' }]}
-        onPress={handleDelete}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <MaterialIcons name="delete-outline" size={18} color={Colors.danger} />
-      </TouchableOpacity>
-    </View>
+    <>
+      <ConfirmModal
+        visible={showConfirm}
+        title="Delete Transaction"
+        message="Remove this transaction? This will reverse the balance change."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setShowConfirm(false)}
+      />
+      <View style={[styles.container, { backgroundColor: Colors.card }]}>
+        <TouchableOpacity style={styles.mainArea} onPress={onPress} activeOpacity={0.75}>
+          <View style={[styles.iconBg, { backgroundColor: iconColor + '18' }]}>
+            <MaterialIcons name={iconName as any} size={22} color={iconColor} />
+          </View>
+          <View style={styles.info}>
+            <Text style={[styles.category, { color: Colors.textPrimary }]}>{transaction.category}</Text>
+            <Text style={[styles.description, { color: Colors.textMuted }]} numberOfLines={1}>
+              {transaction.description || wallet?.name || 'No description'}
+            </Text>
+          </View>
+          <View style={styles.rightSide}>
+            <Text style={[styles.amount, { color: amountColor }]}>
+              {amountSign}₱{transaction.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+            <Text style={[styles.date, { color: Colors.textMuted }]}>{formatDate(transaction.date)}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.deleteBtn, { backgroundColor: Colors.danger + '15' }]}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setShowConfirm(true); }}
+        >
+          <MaterialIcons name="delete-outline" size={18} color={Colors.danger} />
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
 

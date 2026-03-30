@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useColors } from '@/context/ThemeContext';
 import { useFinance, type Wallet, type WalletType } from '@/context/FinanceContext';
 
@@ -144,23 +145,14 @@ export default function WalletsScreen() {
   const { wallets, deleteWallet, getTotalBalance } = useFinance();
   const [showAdd, setShowAdd] = useState(false);
   const [editWallet, setEditWallet] = useState<Wallet | undefined>(undefined);
+  const [walletToDelete, setWalletToDelete] = useState<Wallet | undefined>(undefined);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
-  const handleDelete = (wallet: Wallet) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Delete Wallet',
-      `Remove "${wallet.name}"? This will not delete its transactions.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete', style: 'destructive', onPress: async () => {
-            await deleteWallet(wallet.id);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          }
-        },
-      ]
-    );
+  const handleDeleteConfirmed = async () => {
+    if (!walletToDelete) return;
+    await deleteWallet(walletToDelete.id);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    setWalletToDelete(undefined);
   };
 
   return (
@@ -169,6 +161,15 @@ export default function WalletsScreen() {
       {editWallet && (
         <WalletFormModal visible={true} onClose={() => setEditWallet(undefined)} editWallet={editWallet} />
       )}
+      <ConfirmModal
+        visible={!!walletToDelete}
+        title="Delete Wallet"
+        message={`Remove "${walletToDelete?.name}"? This will not delete its transactions.`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setWalletToDelete(undefined)}
+      />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
@@ -203,7 +204,7 @@ export default function WalletsScreen() {
               key={w.id}
               wallet={w}
               onEdit={() => setEditWallet(w)}
-              onDelete={() => handleDelete(w)}
+              onDelete={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setWalletToDelete(w); }}
             />
           ))
         )}

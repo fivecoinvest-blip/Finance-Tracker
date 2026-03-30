@@ -1,11 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
-import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/constants/colors';
 import { useFinance } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 function DetailRow({ icon, label, value }: { icon: string; label: string; value: string }) {
   const Colors = useColors();
@@ -23,6 +24,7 @@ export default function TransactionDetailScreen() {
   const insets = useSafeAreaInsets();
   const Colors = useColors();
   const { transactions, deleteTransaction, getWalletById } = useFinance();
+  const [showConfirm, setShowConfirm] = useState(false);
   const topPadding = Platform.OS === 'web' ? 16 : insets.top;
 
   const tx = transactions.find(t => t.id === id);
@@ -41,21 +43,24 @@ export default function TransactionDetailScreen() {
   const amountColor = tx.type === 'income' ? Colors.income : tx.type === 'transfer' ? Colors.transfer : Colors.expense;
   const sign = tx.type === 'income' ? '+' : tx.type === 'transfer' ? '↔' : '-';
 
-  const handleDelete = () => {
-    Alert.alert('Delete Transaction', 'This will reverse the transaction from your wallet balance.', [
-      { text: 'Cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteTransaction(tx.id); router.back(); } },
-    ]);
-  };
-
   return (
     <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
+      <ConfirmModal
+        visible={showConfirm}
+        title="Delete Transaction"
+        message="This will reverse the transaction from your wallet balance."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={async () => { setShowConfirm(false); await deleteTransaction(tx.id); router.back(); }}
+        onCancel={() => setShowConfirm(false)}
+      />
+
       <View style={[styles.header, { paddingTop: topPadding + 12 }]}>
         <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>Transaction Detail</Text>
-        <TouchableOpacity onPress={handleDelete} style={[styles.deleteBtn, { backgroundColor: Colors.danger + '20' }]}>
+        <TouchableOpacity onPress={() => setShowConfirm(true)} style={[styles.deleteBtn, { backgroundColor: Colors.danger + '20' }]}>
           <MaterialIcons name="delete-outline" size={22} color={Colors.danger} />
         </TouchableOpacity>
       </View>
