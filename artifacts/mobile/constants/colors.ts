@@ -1,8 +1,8 @@
 export const Colors = {
   primary: '#1A2F5A',
   primaryLight: '#2E4A80',
-  accent: '#F5B829',
-  accentLight: '#FFEAA7',
+  accent: '#FF6B35',
+  accentLight: '#FFE8D6',
   success: '#27AE60',
   danger: '#E74C3C',
   warning: '#F39C12',
@@ -17,7 +17,7 @@ export const Colors = {
   textPrimary: '#FFFFFF',
   textSecondary: '#A8B8D8',
   textMuted: '#6B82A8',
-  textDark: '#1A2F5A',
+  textDark: '#FFFFFF',
 
   income: '#27AE60',
   expense: '#E74C3C',
@@ -25,10 +25,10 @@ export const Colors = {
 
   tabBar: '#0D1B3E',
   tabBarBorder: '#1A2F5A',
-  tabActive: '#F5B829',
+  tabActive: '#FF6B35',
   tabInactive: '#6B82A8',
 
-  xpGold: '#F5B829',
+  xpGold: '#FF6B35',
   xpSilver: '#A8B8D8',
   xpBronze: '#CD7F32',
 

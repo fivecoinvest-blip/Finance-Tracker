@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AchievementBadge } from '@/components/AchievementBadge';
+import { CashperMascot } from '@/components/CashperMascot';
 import { CategoryPieChart } from '@/components/SpendingChart';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -79,9 +80,7 @@ export default function ProfileScreen() {
 
         <Card style={styles.levelCard}>
           <View style={styles.levelHeader}>
-            <View style={styles.avatar}>
-              <MaterialIcons name="person" size={32} color={Colors.accent} />
-            </View>
+            <CashperMascot mood="happy" size={60} showMessage={false} />
             <View style={{ flex: 1, marginLeft: 14 }}>
               <Text style={styles.levelTitle}>Level {stats.level} {levelTitle}</Text>
               <Text style={styles.xpText}>{stats.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>

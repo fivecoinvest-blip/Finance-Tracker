@@ -17,7 +17,7 @@ export default function SettingsScreen() {
   const handleRemoveAds = () => {
     Alert.alert(
       'Remove Ads Forever',
-      'Pay ₱999 once and enjoy FinTrack ad-free forever. This is a one-time purchase.',
+      'Pay ₱999 once and enjoy Cashper ad-free forever. This is a one-time purchase.',
       [
         { text: 'Cancel' },
         {
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
             <MaterialIcons name="workspace-premium" size={28} color={Colors.accent} />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.proTitle}>Remove Ads</Text>
-              <Text style={styles.proDesc}>One-time payment. Enjoy FinTrack ad-free forever.</Text>
+              <Text style={styles.proDesc}>One-time payment. Enjoy Cashper ad-free forever.</Text>
             </View>
           </View>
           {adsRemoved ? (
@@ -79,7 +79,7 @@ export default function SettingsScreen() {
         <Card style={styles.settingsGroup}>
           <SettingsRow icon="info" label="App Version" value="1.0.0" type="info" />
           <SettingsRow icon="privacy-tip" label="Privacy Policy" onPress={() => Alert.alert('Privacy', 'All data is stored locally on your device. We do not collect or share your financial data.')} />
-          <SettingsRow icon="receipt" label="Terms of Service" onPress={() => Alert.alert('Terms', 'FinTrack is provided as-is for personal finance tracking.')} />
+          <SettingsRow icon="receipt" label="Terms of Service" onPress={() => Alert.alert('Terms', 'Cashper is provided as-is for personal finance tracking.')} />
         </Card>
 
         <View style={styles.statsFooter}>

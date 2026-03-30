@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Platform,
   ScrollView,
@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CashperMascot, type MascotMood } from '@/components/CashperMascot';
 import { SpendingChart } from '@/components/SpendingChart';
 import { TransactionItem } from '@/components/TransactionItem';
 import { WalletCard } from '@/components/WalletCard';
@@ -36,8 +37,16 @@ export default function DashboardScreen() {
   const xpProgress = xpNeeded > 0 ? stats.xp / xpNeeded : 0;
 
   const topBudgets = budgets.slice(0, 3);
-
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
+
+  const mascotMood = useMemo<MascotMood>(() => {
+    const overBudget = budgets.some(b => getBudgetUsage(b.id) > 0.8);
+    if (overBudget) return 'alert';
+    if (stats.streak >= 7) return 'celebrate';
+    if (monthlyExpenses < monthlyIncome * 0.5 && monthlyIncome > 0) return 'saving';
+    if (recentTx.length === 0) return 'default';
+    return 'happy';
+  }, [budgets, stats.streak, monthlyIncome, monthlyExpenses, recentTx.length]);
 
   return (
     <View style={styles.screen}>
@@ -48,15 +57,19 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.greeting}>Good {getGreeting()}</Text>
-            <Text style={styles.subGreeting}>Your financial overview</Text>
+            <Text style={styles.appName}>Cashper</Text>
+            <Text style={styles.tagline}>Track • Save • Grow</Text>
           </View>
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/add-transaction'); }}
           >
-            <MaterialIcons name="add" size={24} color={Colors.textDark} />
+            <MaterialIcons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.mascotRow}>
+          <CashperMascot mood={mascotMood} size={70} showMessage={true} />
         </View>
 
         <GradientCard colors={['#1A2F5A', '#2E4A80', '#1A2F5A']} style={styles.balanceCard}>
@@ -101,7 +114,7 @@ export default function DashboardScreen() {
             <Text style={styles.actionText}>Voice</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/ai-insights'); }}>
-            <MaterialIcons name="auto-awesome" size={22} color={Colors.accentLight} />
+            <MaterialIcons name="auto-awesome" size={22} color={Colors.accent} />
             <Text style={styles.actionText}>AI</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/(tabs)/budget'); }}>
@@ -187,9 +200,7 @@ export default function DashboardScreen() {
           </View>
           {recentTx.length === 0 ? (
             <Card style={styles.emptyState}>
-              <MaterialIcons name="receipt-long" size={36} color={Colors.textMuted} />
-              <Text style={styles.emptyText}>No transactions yet</Text>
-              <Text style={styles.emptySubtext}>Tap + to add your first transaction</Text>
+              <CashperMascot mood="default" size={80} showMessage={true} message="No transactions yet — tap + to add your first!" />
             </Card>
           ) : (
             recentTx.map(tx => <TransactionItem key={tx.id} transaction={tx} onPress={() => router.push({ pathname: '/transaction-detail', params: { id: tx.id } })} />)
@@ -200,23 +211,20 @@ export default function DashboardScreen() {
   );
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Morning';
-  if (h < 17) return 'Afternoon';
-  return 'Evening';
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.backgroundDark },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  greeting: { color: Colors.textPrimary, fontSize: 24, fontWeight: '700' as const },
-  subGreeting: { color: Colors.textMuted, fontSize: 14, marginTop: 2 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  appName: { color: Colors.accent, fontSize: 26, fontWeight: '700' as const, letterSpacing: 0.5 },
+  tagline: { color: Colors.textMuted, fontSize: 12, marginTop: 2, letterSpacing: 1 },
   addBtn: {
     width: 44, height: 44, borderRadius: 14,
     backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center',
+  },
+  mascotRow: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   balanceCard: { marginBottom: 16 },
   balanceLabel: { color: Colors.textSecondary, fontSize: 14, marginBottom: 4 },
@@ -249,6 +257,4 @@ const styles = StyleSheet.create({
   budgetSpent: { color: Colors.textSecondary, fontSize: 12 },
   budgetLimit: { color: Colors.textMuted, fontSize: 12 },
   emptyState: { alignItems: 'center', paddingVertical: 32 },
-  emptyText: { color: Colors.textSecondary, fontSize: 16, fontWeight: '600' as const, marginTop: 12 },
-  emptySubtext: { color: Colors.textMuted, fontSize: 13, marginTop: 4 },
 });
