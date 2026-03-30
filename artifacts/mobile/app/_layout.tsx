@@ -13,13 +13,25 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LockScreen } from "@/components/LockScreen";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { FinanceProvider } from "@/context/FinanceContext";
+import { SecurityProvider, useSecurity } from "@/context/SecurityContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+function LockGate({ children }: { children: React.ReactNode }) {
+  const { isLocked } = useSecurity();
+  return (
+    <>
+      {children}
+      {isLocked && <LockScreen />}
+    </>
+  );
+}
 
 function RootLayoutNav() {
   return (
@@ -57,11 +69,15 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <ThemeProvider>
-                <CurrencyProvider>
-                  <FinanceProvider>
-                    <RootLayoutNav />
-                  </FinanceProvider>
-                </CurrencyProvider>
+                <SecurityProvider>
+                  <CurrencyProvider>
+                    <FinanceProvider>
+                      <LockGate>
+                        <RootLayoutNav />
+                      </LockGate>
+                    </FinanceProvider>
+                  </CurrencyProvider>
+                </SecurityProvider>
               </ThemeProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>

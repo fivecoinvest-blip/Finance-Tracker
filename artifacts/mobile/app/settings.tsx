@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
 import { CURRENCIES, useCurrency } from '@/context/CurrencyContext';
 import { useFinance } from '@/context/FinanceContext';
+import { useSecurity } from '@/context/SecurityContext';
 import { useColors, useTheme } from '@/context/ThemeContext';
 
 const SETTINGS_KEYS = {
@@ -171,6 +172,7 @@ export default function SettingsScreen() {
   const Colors = useColors();
   const { isDark, toggleTheme } = useTheme();
   const { currency, setCurrencyByCode } = useCurrency();
+  const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock } = useSecurity();
   const { transactions, wallets, budgets, stats } = useFinance();
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [adsRemoved, setAdsRemoved] = useToggle(SETTINGS_KEYS.adsRemoved, false);
@@ -330,7 +332,7 @@ export default function SettingsScreen() {
             </View>
           ) : (
             <TouchableOpacity style={[styles.purchaseBtn, { backgroundColor: Colors.accent }]} onPress={handleRemoveAds}>
-              <Text style={styles.purchaseBtnText}>Remove Ads — ₱999</Text>
+              <Text style={styles.purchaseBtnText}>Remove Ads — {currency.symbol}999</Text>
             </TouchableOpacity>
           )}
         </Card>
@@ -353,6 +355,40 @@ export default function SettingsScreen() {
             <Switch
               value={streakReminders}
               onValueChange={(v) => { setStreakReminders(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              trackColor={{ true: Colors.accent, false: Colors.border }}
+              thumbColor="#fff"
+            />
+          </View>
+        </Card>
+
+        <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Security</Text>
+        <Card style={styles.settingsGroup}>
+          <View style={[styles.settingsRow, styles.lastRow]}>
+            <MaterialIcons
+              name={biometricsAvailable ? 'fingerprint' : 'lock'}
+              size={20}
+              color={Colors.textSecondary}
+              style={styles.settingsIcon}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>
+                {biometricsAvailable ? `${biometricType} / PIN Lock` : 'PIN / Passcode Lock'}
+              </Text>
+              <Text style={[styles.settingsSubtext, { color: Colors.textMuted }]}>
+                {Platform.OS === 'web'
+                  ? 'Lock Cashper when you leave the app'
+                  : biometricsAvailable
+                  ? `Unlock with ${biometricType} or your device passcode`
+                  : 'Unlock with your device passcode'}
+              </Text>
+            </View>
+            <Switch
+              value={lockEnabled}
+              onValueChange={async (v) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                const success = v ? await enableLock() : await disableLock();
+                if (!success) Alert.alert('Authentication Failed', 'Could not verify your identity.');
+              }}
               trackColor={{ true: Colors.accent, false: Colors.border }}
               thumbColor="#fff"
             />
