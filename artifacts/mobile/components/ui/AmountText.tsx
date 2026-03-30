@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TextStyle } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { useColors } from '@/context/ThemeContext';
 
 interface AmountTextProps {
   amount: number;
@@ -11,11 +11,11 @@ interface AmountTextProps {
 }
 
 export function AmountText({ amount, type = 'neutral', style, showSign = true, prefix = '₱' }: AmountTextProps) {
+  const Colors = useColors();
   const color = type === 'income' ? Colors.income
     : type === 'expense' ? Colors.expense
     : type === 'transfer' ? Colors.transfer
     : Colors.textPrimary;
-
   const sign = showSign && type === 'income' ? '+' : type === 'expense' ? '-' : '';
 
   return (

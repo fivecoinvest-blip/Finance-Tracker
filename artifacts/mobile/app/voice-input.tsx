@@ -15,8 +15,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
-import { CATEGORY_COLORS, Colors } from '@/constants/colors';
+import { CATEGORY_COLORS } from '@/constants/colors';
 import { useFinance, type TransactionType } from '@/context/FinanceContext';
+import { useColors } from '@/context/ThemeContext';
 
 const EXAMPLES = [
   'spent ₱250 on food today',
@@ -31,9 +32,7 @@ function parseNaturalInput(text: string): Partial<{ type: TransactionType; amoun
   const lower = text.toLowerCase();
   let amount = 0;
   const amountMatch = text.match(/[₱$]?\s*(\d[\d,]*(?:\.\d{1,2})?)/);
-  if (amountMatch) {
-    amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-  }
+  if (amountMatch) { amount = parseFloat(amountMatch[1].replace(/,/g, '')); }
   if (!amount) return null;
 
   let type: TransactionType = 'expense';
@@ -43,25 +42,24 @@ function parseNaturalInput(text: string): Partial<{ type: TransactionType; amoun
     type = 'income';
     category = /salary|wage/i.test(lower) ? 'Salary' : 'Other';
   } else if (/transfer|sent|moved/i.test(lower)) {
-    type = 'transfer';
-    category = 'Transfer';
+    type = 'transfer'; category = 'Transfer';
   } else {
-    if (/food|eat|restaurant|meal|lunch|dinner|breakfast|pizza|burger|sushi|grab|jollibee|mc|kfc|coffee|cafe|snack|mcdonald/i.test(lower)) category = 'Food';
+    if (/food|eat|restaurant|meal|lunch|dinner|breakfast|pizza|burger|grab|jollibee|mc|kfc|coffee|cafe|snack/i.test(lower)) category = 'Food';
     else if (/groceries|grocery|supermarket|sm|puregold|market/i.test(lower)) category = 'Food';
-    else if (/transport|grab|uber|tricycle|jeep|bus|lrt|mrt|taxi|fuel|gas|petrol|commute/i.test(lower)) category = 'Transport';
+    else if (/transport|grab|uber|tricycle|jeep|bus|lrt|mrt|taxi|fuel|gas|commute/i.test(lower)) category = 'Transport';
     else if (/bill|electric|water|internet|phone|load|subscription|netflix|spotify/i.test(lower)) category = 'Bills';
-    else if (/shop|clothes|shoes|buy|bought|purchase|lazada|shopee|amazon/i.test(lower)) category = 'Shopping';
-    else if (/health|medicine|doctor|hospital|pharmacy|medic/i.test(lower)) category = 'Health';
-    else if (/movie|cinema|game|entertainment|concert|streaming/i.test(lower)) category = 'Entertainment';
+    else if (/shop|clothes|shoes|buy|bought|purchase|lazada|shopee/i.test(lower)) category = 'Shopping';
+    else if (/health|medicine|doctor|hospital|pharmacy/i.test(lower)) category = 'Health';
+    else if (/movie|cinema|game|entertainment|concert/i.test(lower)) category = 'Entertainment';
     else if (/school|tuition|book|course|class|education/i.test(lower)) category = 'Education';
     else if (/save|savings/i.test(lower)) category = 'Savings';
   }
-
   return { type, amount, category, description: text.trim() };
 }
 
 export default function VoiceInputScreen() {
   const insets = useSafeAreaInsets();
+  const Colors = useColors();
   const { wallets, addTransaction } = useFinance();
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState<ReturnType<typeof parseNaturalInput>>(null);
@@ -79,63 +77,32 @@ export default function VoiceInputScreen() {
       ])
     ).start();
   };
-  const stopPulse = () => {
-    pulseAnim.stopAnimation();
-    pulseAnim.setValue(1);
-  };
+  const stopPulse = () => { pulseAnim.stopAnimation(); pulseAnim.setValue(1); };
 
   const startListening = () => {
     if (Platform.OS === 'web') {
       const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (!SR) {
-        Alert.alert('Not Supported', 'Your browser does not support voice input. Please try Chrome or Edge.');
-        return;
-      }
+      if (!SR) { Alert.alert('Not Supported', 'Your browser does not support voice input. Please try Chrome or Edge.'); return; }
       const recognition = new SR();
       recognitionRef.current = recognition;
       recognition.lang = 'en-PH';
       recognition.continuous = false;
       recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setListening(true);
-        startPulse();
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      };
+      recognition.onstart = () => { setListening(true); startPulse(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); };
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        setText(transcript);
-        setParsed(null);
-        setListening(false);
-        stopPulse();
+        setText(transcript); setParsed(null); setListening(false); stopPulse();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       };
-      recognition.onerror = (e: any) => {
-        setListening(false);
-        stopPulse();
-        if (e.error !== 'aborted') {
-          Alert.alert('Mic Error', `Could not capture audio: ${e.error}`);
-        }
-      };
-      recognition.onend = () => {
-        setListening(false);
-        stopPulse();
-      };
+      recognition.onerror = (e: any) => { setListening(false); stopPulse(); if (e.error !== 'aborted') Alert.alert('Mic Error', `Could not capture audio: ${e.error}`); };
+      recognition.onend = () => { setListening(false); stopPulse(); };
       recognition.start();
     } else {
-      Alert.alert(
-        'Voice Input',
-        'Voice recognition on mobile requires a custom build.\n\nTip: Type your transaction in the text box — Cashper will auto-detect the details!',
-        [{ text: 'Got it' }]
-      );
+      Alert.alert('Voice Input', 'Voice recognition on mobile requires a custom build.\n\nTip: Type your transaction in the text box — Cashper will auto-detect the details!', [{ text: 'Got it' }]);
     }
   };
 
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-    setListening(false);
-    stopPulse();
-  };
+  const stopListening = () => { recognitionRef.current?.stop(); setListening(false); stopPulse(); };
 
   const handleParse = () => {
     if (!text.trim()) return;
@@ -148,13 +115,9 @@ export default function VoiceInputScreen() {
   const handleConfirm = async () => {
     if (!parsed || !wallets[0]) return;
     await addTransaction({
-      type: parsed.type!,
-      amount: parsed.amount!,
-      category: parsed.category!,
-      description: parsed.description ?? text,
-      walletId: wallets[0].id,
-      date: new Date().toISOString(),
-      recurring: 'none',
+      type: parsed.type!, amount: parsed.amount!, category: parsed.category!,
+      description: parsed.description ?? text, walletId: wallets[0].id,
+      date: new Date().toISOString(), recurring: 'none',
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setConfirmed(true);
@@ -162,31 +125,36 @@ export default function VoiceInputScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
       <View style={[styles.header, { paddingTop: topPadding + 8 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Quick Add</Text>
+        <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>Quick Add</Text>
         <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.micSection}>
           <TouchableOpacity onPress={listening ? stopListening : startListening} activeOpacity={0.85}>
-            <Animated.View style={[styles.micBtn, listening && styles.micBtnActive, { transform: [{ scale: pulseAnim }] }]}>
+            <Animated.View style={[
+              styles.micBtn,
+              { backgroundColor: Colors.accent + '18', borderColor: Colors.accent + '40' },
+              listening && { backgroundColor: Colors.accent, borderColor: Colors.accent },
+              { transform: [{ scale: pulseAnim }] }
+            ]}>
               <MaterialIcons name={listening ? 'stop' : 'mic'} size={36} color={listening ? '#fff' : Colors.accent} />
             </Animated.View>
           </TouchableOpacity>
-          <Text style={styles.micHint}>
+          <Text style={[styles.micHint, { color: Colors.textMuted }]}>
             {listening ? 'Listening... tap to stop' : Platform.OS === 'web' ? 'Tap mic or type below' : 'Type below to quick-add'}
           </Text>
         </View>
 
-        <View style={styles.inputArea}>
+        <View style={[styles.inputArea, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
           <MaterialIcons name="edit" size={20} color={Colors.textMuted} style={styles.inputIcon} />
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { color: Colors.textPrimary }]}
             placeholder="Type what you spent or earned..."
             placeholderTextColor={Colors.textMuted}
             value={text}
@@ -195,35 +163,33 @@ export default function VoiceInputScreen() {
           />
         </View>
 
-        <TouchableOpacity style={[styles.parseBtn, !text.trim() && styles.parseBtnDisabled]} onPress={handleParse} disabled={!text.trim()}>
+        <TouchableOpacity style={[styles.parseBtn, { backgroundColor: Colors.accent }, !text.trim() && styles.parseBtnDisabled]} onPress={handleParse} disabled={!text.trim()}>
           <MaterialIcons name="auto-awesome" size={18} color="#FFFFFF" />
           <Text style={styles.parseBtnText}>Parse & Add</Text>
         </TouchableOpacity>
 
         {parsed && !confirmed && (
           <Card style={styles.parsedCard}>
-            <Text style={styles.parsedTitle}>Detected Transaction</Text>
-            <View style={styles.parsedRow}>
-              <Text style={styles.parsedLabel}>Type</Text>
-              <Text style={[styles.parsedValue, {
-                color: parsed.type === 'income' ? Colors.income : parsed.type === 'transfer' ? Colors.transfer : Colors.expense,
-              }]}>{parsed.type?.toUpperCase()}</Text>
+            <Text style={[styles.parsedTitle, { color: Colors.textPrimary }]}>Detected Transaction</Text>
+            <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
+              <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Type</Text>
+              <Text style={[styles.parsedValue, { color: parsed.type === 'income' ? Colors.income : parsed.type === 'transfer' ? Colors.transfer : Colors.expense }]}>{parsed.type?.toUpperCase()}</Text>
             </View>
-            <View style={styles.parsedRow}>
-              <Text style={styles.parsedLabel}>Amount</Text>
-              <Text style={styles.parsedValue}>₱{parsed.amount?.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
+            <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
+              <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Amount</Text>
+              <Text style={[styles.parsedValue, { color: Colors.textPrimary }]}>₱{parsed.amount?.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
             </View>
-            <View style={styles.parsedRow}>
-              <Text style={styles.parsedLabel}>Category</Text>
+            <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
+              <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Category</Text>
               <View style={[styles.catTag, { backgroundColor: (CATEGORY_COLORS[parsed.category ?? 'Other'] ?? Colors.accent) + '25' }]}>
                 <Text style={[styles.catTagText, { color: CATEGORY_COLORS[parsed.category ?? 'Other'] ?? Colors.accent }]}>{parsed.category}</Text>
               </View>
             </View>
-            <View style={styles.parsedRow}>
-              <Text style={styles.parsedLabel}>Wallet</Text>
-              <Text style={styles.parsedValue}>{wallets[0]?.name ?? 'Default'}</Text>
+            <View style={[styles.parsedRow, { borderBottomColor: Colors.border }]}>
+              <Text style={[styles.parsedLabel, { color: Colors.textMuted }]}>Wallet</Text>
+              <Text style={[styles.parsedValue, { color: Colors.textPrimary }]}>{wallets[0]?.name ?? 'Default'}</Text>
             </View>
-            <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
+            <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: Colors.accent }]} onPress={handleConfirm}>
               <MaterialIcons name="check" size={18} color="#FFFFFF" />
               <Text style={styles.confirmBtnText}>Add This Transaction</Text>
             </TouchableOpacity>
@@ -233,17 +199,17 @@ export default function VoiceInputScreen() {
         {confirmed && (
           <View style={styles.successState}>
             <MaterialIcons name="check-circle" size={56} color={Colors.success} />
-            <Text style={styles.successText}>Transaction Added!</Text>
+            <Text style={[styles.successText, { color: Colors.success }]}>Transaction Added!</Text>
           </View>
         )}
 
         {!parsed && !confirmed && (
           <>
-            <Text style={styles.examplesTitle}>Try saying or typing:</Text>
+            <Text style={[styles.examplesTitle, { color: Colors.textSecondary }]}>Try saying or typing:</Text>
             {EXAMPLES.map((ex, i) => (
-              <TouchableOpacity key={i} style={styles.exampleChip} onPress={() => { setText(ex); setParsed(null); }}>
+              <TouchableOpacity key={i} style={[styles.exampleChip, { backgroundColor: Colors.card }]} onPress={() => { setText(ex); setParsed(null); }}>
                 <MaterialIcons name="chat-bubble-outline" size={14} color={Colors.textMuted} />
-                <Text style={styles.exampleText}>{ex}</Text>
+                <Text style={[styles.exampleText, { color: Colors.textSecondary }]}>{ex}</Text>
               </TouchableOpacity>
             ))}
           </>
@@ -254,42 +220,32 @@ export default function VoiceInputScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.backgroundDark },
+  screen: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
-  backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const },
+  backBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700' as const },
   content: { paddingHorizontal: 20, paddingBottom: 60 },
   micSection: { alignItems: 'center', paddingVertical: 24 },
-  micBtn: {
-    width: 88, height: 88, borderRadius: 44,
-    backgroundColor: Colors.accent + '18',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: Colors.accent + '40',
-    marginBottom: 10,
-  },
-  micBtnActive: {
-    backgroundColor: Colors.accent,
-    borderColor: Colors.accent,
-  },
-  micHint: { color: Colors.textMuted, fontSize: 13, fontWeight: '500' as const },
-  inputArea: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
+  micBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center', borderWidth: 2, marginBottom: 10 },
+  micHint: { fontSize: 13, fontWeight: '500' as const },
+  inputArea: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1 },
   inputIcon: { marginTop: 3, marginRight: 8 },
-  textInput: { flex: 1, color: Colors.textPrimary, fontSize: 16, lineHeight: 24, minHeight: 60 },
-  parseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.accent, borderRadius: 14, paddingVertical: 14, marginBottom: 20 },
+  textInput: { flex: 1, fontSize: 16, lineHeight: 24, minHeight: 60 },
+  parseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, marginBottom: 20 },
   parseBtnDisabled: { opacity: 0.4 },
   parseBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' as const },
   parsedCard: { marginBottom: 20 },
-  parsedTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '700' as const, marginBottom: 14 },
-  parsedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  parsedLabel: { color: Colors.textMuted, fontSize: 14 },
-  parsedValue: { color: Colors.textPrimary, fontSize: 14, fontWeight: '700' as const },
+  parsedTitle: { fontSize: 16, fontWeight: '700' as const, marginBottom: 14 },
+  parsedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1 },
+  parsedLabel: { fontSize: 14 },
+  parsedValue: { fontSize: 14, fontWeight: '700' as const },
   catTag: { borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10 },
   catTagText: { fontSize: 13, fontWeight: '700' as const },
-  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.accent, borderRadius: 12, paddingVertical: 14, marginTop: 16 },
+  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14, marginTop: 16 },
   confirmBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' as const },
-  examplesTitle: { color: Colors.textSecondary, fontSize: 14, fontWeight: '600' as const, marginBottom: 12 },
-  exampleChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.card, borderRadius: 10, padding: 12, marginBottom: 8 },
-  exampleText: { color: Colors.textSecondary, fontSize: 14, flex: 1 },
+  examplesTitle: { fontSize: 14, fontWeight: '600' as const, marginBottom: 12 },
+  exampleChip: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, padding: 12, marginBottom: 8 },
+  exampleText: { fontSize: 14, flex: 1 },
   successState: { alignItems: 'center', paddingTop: 40 },
-  successText: { color: Colors.success, fontSize: 18, fontWeight: '700' as const, marginTop: 12 },
+  successText: { fontSize: 18, fontWeight: '700' as const, marginTop: 12 },
 });

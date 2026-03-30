@@ -18,11 +18,12 @@ import { WalletCard } from '@/components/WalletCard';
 import { Card } from '@/components/ui/Card';
 import { GradientCard } from '@/components/ui/GradientCard';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Colors } from '@/constants/colors';
 import { useFinance, xpForNextLevel } from '@/context/FinanceContext';
+import { useColors } from '@/context/ThemeContext';
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
+  const Colors = useColors();
   const {
     wallets, transactions, budgets, stats,
     getTotalBalance, getMonthlyIncome, getMonthlyExpenses, getBudgetUsage,
@@ -49,7 +50,7 @@ export default function DashboardScreen() {
   }, [budgets, stats.streak, monthlyIncome, monthlyExpenses, recentTx.length]);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: Platform.OS === 'web' ? 100 : 80 }]}
@@ -57,11 +58,11 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.appName}>Cashper</Text>
-            <Text style={styles.tagline}>Track • Save • Grow</Text>
+            <Text style={[styles.appName, { color: Colors.accent }]}>Cashper</Text>
+            <Text style={[styles.tagline, { color: Colors.textSecondary }]}>Track • Save • Grow</Text>
           </View>
           <TouchableOpacity
-            style={styles.addBtn}
+            style={[styles.addBtn, { backgroundColor: Colors.accent }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/add-transaction'); }}
           >
             <MaterialIcons name="add" size={24} color="#FFFFFF" />
@@ -84,9 +85,7 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.ieLabel}>Income</Text>
-                <Text style={styles.ieAmount}>
-                  ₱{monthlyIncome.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-                </Text>
+                <Text style={styles.ieAmount}>₱{monthlyIncome.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</Text>
               </View>
             </View>
             <View style={styles.divider} />
@@ -96,51 +95,49 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.ieLabel}>Expenses</Text>
-                <Text style={styles.ieAmount}>
-                  ₱{monthlyExpenses.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-                </Text>
+                <Text style={styles.ieAmount}>₱{monthlyExpenses.toLocaleString('en-PH', { minimumFractionDigits: 0 })}</Text>
               </View>
             </View>
           </View>
         </GradientCard>
 
-        <View style={styles.quickActions}>
+        <View style={[styles.quickActions, { backgroundColor: Colors.card }]}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/add-transaction'); }}>
             <MaterialIcons name="add-circle" size={22} color={Colors.accent} />
-            <Text style={styles.actionText}>Add</Text>
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/voice-input'); }}>
             <MaterialIcons name="mic" size={22} color={Colors.info} />
-            <Text style={styles.actionText}>Voice</Text>
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>Voice</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/ai-insights'); }}>
             <MaterialIcons name="auto-awesome" size={22} color={Colors.accent} />
-            <Text style={styles.actionText}>AI</Text>
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>AI</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/(tabs)/budget'); }}>
             <MaterialIcons name="pie-chart" size={22} color={Colors.success} />
-            <Text style={styles.actionText}>Budget</Text>
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>Budget</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.xpRow}>
+        <View style={[styles.xpRow, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="local-fire-department" size={18} color={Colors.accent} />
-          <Text style={styles.streakText}>{stats.streak} day streak</Text>
+          <Text style={[styles.streakText, { color: Colors.accent }]}>{stats.streak} day streak</Text>
           <View style={styles.xpSection}>
-            <Text style={styles.levelText}>Lvl {stats.level}</Text>
+            <Text style={[styles.levelText, { color: Colors.textPrimary }]}>Lvl {stats.level}</Text>
             <View style={styles.xpBarContainer}>
               <ProgressBar progress={xpProgress} color={Colors.accent} height={6} />
             </View>
-            <Text style={styles.xpText}>{stats.xp}/{xpNeeded} XP</Text>
+            <Text style={[styles.xpText, { color: Colors.textMuted }]}>{stats.xp}/{xpNeeded} XP</Text>
           </View>
         </View>
 
         {wallets.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Wallets</Text>
+              <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Wallets</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/wallets')}>
-                <Text style={styles.seeAll}>See all</Text>
+                <Text style={[styles.seeAll, { color: Colors.accent }]}>See all</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 0, paddingRight: 8 }}>
@@ -152,9 +149,9 @@ export default function DashboardScreen() {
         {topBudgets.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Budgets</Text>
+              <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Budgets</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/budget')}>
-                <Text style={styles.seeAll}>See all</Text>
+                <Text style={[styles.seeAll, { color: Colors.accent }]}>See all</Text>
               </TouchableOpacity>
             </View>
             {topBudgets.map(b => {
@@ -162,17 +159,17 @@ export default function DashboardScreen() {
               return (
                 <Card key={b.id} style={styles.budgetCard}>
                   <View style={styles.budgetHeader}>
-                    <Text style={styles.budgetCategory}>{b.category}</Text>
+                    <Text style={[styles.budgetCategory, { color: Colors.textPrimary }]}>{b.category}</Text>
                     <Text style={[styles.budgetPercent, { color: usage > 1 ? Colors.danger : usage > 0.8 ? Colors.warning : Colors.textSecondary }]}>
                       {Math.round(usage * 100)}%
                     </Text>
                   </View>
                   <ProgressBar progress={usage} />
                   <View style={styles.budgetFooter}>
-                    <Text style={styles.budgetSpent}>
+                    <Text style={[styles.budgetSpent, { color: Colors.textSecondary }]}>
                       ₱{(usage * b.limit).toLocaleString('en-PH', { minimumFractionDigits: 0 })} spent
                     </Text>
-                    <Text style={styles.budgetLimit}>
+                    <Text style={[styles.budgetLimit, { color: Colors.textMuted }]}>
                       of ₱{b.limit.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                     </Text>
                   </View>
@@ -184,7 +181,7 @@ export default function DashboardScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Spending Trends</Text>
+            <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Spending Trends</Text>
           </View>
           <Card>
             <SpendingChart months={4} />
@@ -193,9 +190,9 @@ export default function DashboardScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Recent Transactions</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
-              <Text style={styles.seeAll}>See all</Text>
+              <Text style={[styles.seeAll, { color: Colors.accent }]}>See all</Text>
             </TouchableOpacity>
           </View>
           {recentTx.length === 0 ? (
@@ -212,20 +209,14 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.backgroundDark },
+  screen: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  appName: { color: Colors.accent, fontSize: 26, fontWeight: '700' as const, letterSpacing: 0.5 },
-  tagline: { color: Colors.textMuted, fontSize: 12, marginTop: 2, letterSpacing: 1 },
-  addBtn: {
-    width: 44, height: 44, borderRadius: 14,
-    backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center',
-  },
-  mascotRow: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
+  appName: { fontSize: 26, fontWeight: '700' as const, letterSpacing: 0.5 },
+  tagline: { fontSize: 12, marginTop: 2, letterSpacing: 1 },
+  addBtn: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  mascotRow: { alignItems: 'center', marginBottom: 16 },
   balanceCard: { marginBottom: 16 },
   balanceLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 4 },
   balanceAmount: { color: '#FFFFFF', fontSize: 36, fontWeight: '700' as const, marginBottom: 20 },
@@ -236,25 +227,25 @@ const styles = StyleSheet.create({
   ieLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
   ieAmount: { fontSize: 16, fontWeight: '700' as const, color: '#FFFFFF' },
   divider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.3)', marginHorizontal: 16 },
-  quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, backgroundColor: Colors.card, borderRadius: 16, padding: 12 },
+  quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, borderRadius: 16, padding: 12 },
   actionBtn: { alignItems: 'center', gap: 4, flex: 1 },
-  actionText: { color: Colors.textSecondary, fontSize: 11, fontWeight: '600' as const },
-  xpRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, backgroundColor: Colors.card, borderRadius: 14, padding: 12, gap: 8 },
-  streakText: { color: Colors.accent, fontWeight: '700' as const, fontSize: 13 },
+  actionText: { fontSize: 11, fontWeight: '600' as const },
+  xpRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, borderRadius: 14, padding: 12, gap: 8 },
+  streakText: { fontWeight: '700' as const, fontSize: 13 },
   xpSection: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 8 },
-  levelText: { color: Colors.textPrimary, fontWeight: '700' as const, fontSize: 13 },
+  levelText: { fontWeight: '700' as const, fontSize: 13 },
   xpBarContainer: { flex: 1 },
-  xpText: { color: Colors.textMuted, fontSize: 11 },
+  xpText: { fontSize: 11 },
   section: { marginBottom: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const },
-  seeAll: { color: Colors.accent, fontSize: 13, fontWeight: '600' as const },
+  sectionTitle: { fontSize: 18, fontWeight: '700' as const },
+  seeAll: { fontSize: 13, fontWeight: '600' as const },
   budgetCard: { marginBottom: 8 },
   budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  budgetCategory: { color: Colors.textPrimary, fontWeight: '600' as const, fontSize: 14 },
+  budgetCategory: { fontWeight: '600' as const, fontSize: 14 },
   budgetPercent: { fontWeight: '700' as const, fontSize: 14 },
   budgetFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  budgetSpent: { color: Colors.textSecondary, fontSize: 12 },
-  budgetLimit: { color: Colors.textMuted, fontSize: 12 },
+  budgetSpent: { fontSize: 12 },
+  budgetLimit: { fontSize: 12 },
   emptyState: { alignItems: 'center', paddingVertical: 32 },
 });

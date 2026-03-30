@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { useColors } from '@/context/ThemeContext';
 
 export type MascotMood = 'happy' | 'celebrate' | 'saving' | 'alert' | 'default';
 
@@ -13,17 +14,17 @@ const MASCOT_IMAGES: Record<MascotMood, any> = {
 
 const MASCOT_MESSAGES: Record<MascotMood, string[]> = {
   happy: [
-    "All caught up! See you tomorrow! 🌟",
+    "All caught up! See you tomorrow!",
     "You're doing great, keep it up!",
     "Financial freedom is just around the corner!",
   ],
   celebrate: [
-    "Goal completed! You're amazing! 🎉",
-    "Wahoo! Look at you go! 🎊",
-    "That's what I'm talking about! 🚀",
+    "Goal completed! You're amazing!",
+    "Wahoo! Look at you go!",
+    "That's what I'm talking about!",
   ],
   saving: [
-    "Great savings habit! Keep it going! 💰",
+    "Great savings habit! Keep it going!",
     "Every peso saved is a step forward!",
     "Your future self will thank you!",
   ],
@@ -33,7 +34,7 @@ const MASCOT_MESSAGES: Record<MascotMood, string[]> = {
     "Time to pump the brakes a little!",
   ],
   default: [
-    "Track • Save • Grow 🐱",
+    "Track • Save • Grow",
     "Let's manage your money together!",
     "Hi! I'm Cashper, your finance buddy!",
   ],
@@ -54,6 +55,7 @@ export function CashperMascot({
   showMessage = true,
   style,
 }: CashperMascotProps) {
+  const Colors = useColors();
   const messages = MASCOT_MESSAGES[mood];
   const displayMessage = message ?? messages[Math.floor(Math.random() * messages.length)];
 
@@ -65,8 +67,8 @@ export function CashperMascot({
         resizeMode="contain"
       />
       {showMessage && (
-        <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>{displayMessage}</Text>
+        <View style={[styles.bubble, { backgroundColor: Colors.accent + '18', borderColor: Colors.accent + '35' }]}>
+          <Text style={[styles.bubbleText, { color: Colors.accent }]}>{displayMessage}</Text>
         </View>
       )}
     </View>
@@ -82,18 +84,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   bubble: {
-    backgroundColor: 'rgba(255,107,53,0.15)',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.3)',
     maxWidth: 220,
   },
   bubbleText: {
-    color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
     lineHeight: 18,
   },

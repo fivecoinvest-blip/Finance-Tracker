@@ -1,8 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '@/constants/colors';
 import type { Wallet } from '@/context/FinanceContext';
+import { useColors } from '@/context/ThemeContext';
 
 interface WalletCardProps {
   wallet: Wallet;
@@ -15,15 +15,21 @@ const WALLET_TYPE_LABEL: Record<string, string> = {
 };
 
 export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps) {
+  const Colors = useColors();
+
   if (compact) {
     return (
-      <TouchableOpacity style={[styles.compactCard, { borderLeftColor: wallet.color }]} onPress={onPress} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={[styles.compactCard, { backgroundColor: Colors.card, borderLeftColor: wallet.color }]}
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
         <View style={[styles.iconBg, { backgroundColor: wallet.color + '20' }]}>
           <MaterialIcons name={wallet.icon as any} size={20} color={wallet.color} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.compactName} numberOfLines={1}>{wallet.name}</Text>
-          <Text style={styles.compactType}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
+          <Text style={[styles.compactName, { color: Colors.textPrimary }]} numberOfLines={1}>{wallet.name}</Text>
+          <Text style={[styles.compactType, { color: Colors.textMuted }]}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
         </View>
         <Text style={[styles.compactBalance, { color: wallet.balance >= 0 ? Colors.textPrimary : Colors.danger }]}>
           ₱{Math.abs(wallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -33,7 +39,7 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: Colors.card }]} onPress={onPress} activeOpacity={0.85}>
       <View style={[styles.topBar, { backgroundColor: wallet.color }]} />
       <View style={styles.body}>
         <View style={styles.header}>
@@ -44,7 +50,7 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
             <Text style={[styles.typeText, { color: wallet.color }]}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
           </View>
         </View>
-        <Text style={styles.walletName}>{wallet.name}</Text>
+        <Text style={[styles.walletName, { color: Colors.textSecondary }]}>{wallet.name}</Text>
         <Text style={[styles.balance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
           ₱{wallet.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </Text>
@@ -55,7 +61,6 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
     borderRadius: 20,
     marginRight: 12,
     width: 180,
@@ -72,12 +77,11 @@ const styles = StyleSheet.create({
   iconContainer: { width: 44, height: 44, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
   typeTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   typeText: { fontSize: 10, fontWeight: '700' as const },
-  walletName: { color: Colors.textSecondary, fontSize: 13, marginBottom: 4 },
-  balance: { fontSize: 20, fontWeight: '700' as const, color: Colors.textPrimary },
+  walletName: { fontSize: 13, marginBottom: 4 },
+  balance: { fontSize: 20, fontWeight: '700' as const },
   compactCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.card, borderRadius: 14,
-    padding: 14, marginBottom: 8,
+    borderRadius: 14, padding: 14, marginBottom: 8,
     borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   iconBg: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  compactName: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' as const },
-  compactType: { color: Colors.textMuted, fontSize: 11, marginTop: 2 },
+  compactName: { fontSize: 14, fontWeight: '600' as const },
+  compactType: { fontSize: 11, marginTop: 2 },
   compactBalance: { fontSize: 15, fontWeight: '700' as const },
 });

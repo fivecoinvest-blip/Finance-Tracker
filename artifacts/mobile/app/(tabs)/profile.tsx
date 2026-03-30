@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import {
   Platform,
@@ -14,11 +15,11 @@ import { CashperMascot } from '@/components/CashperMascot';
 import { CategoryPieChart } from '@/components/SpendingChart';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Colors } from '@/constants/colors';
-import { DEFAULT_ACHIEVEMENTS, useFinance, xpForNextLevel, xpToLevel } from '@/context/FinanceContext';
-import { router } from 'expo-router';
+import { DEFAULT_ACHIEVEMENTS, useFinance, xpForNextLevel } from '@/context/FinanceContext';
+import { useColors } from '@/context/ThemeContext';
 
 function HealthScore({ score }: { score: number }) {
+  const Colors = useColors();
   const color = score >= 70 ? Colors.success : score >= 40 ? Colors.warning : Colors.danger;
   const label = score >= 70 ? 'Healthy' : score >= 40 ? 'Fair' : 'Needs Work';
 
@@ -26,10 +27,10 @@ function HealthScore({ score }: { score: number }) {
     <View style={styles.healthCard}>
       <View style={styles.healthScoreCircle}>
         <Text style={[styles.healthScoreNum, { color }]}>{score}</Text>
-        <Text style={styles.healthScoreLabel}>/ 100</Text>
+        <Text style={[styles.healthScoreLabel, { color: Colors.textMuted }]}>/ 100</Text>
       </View>
       <View style={{ flex: 1, marginLeft: 20 }}>
-        <Text style={styles.healthTitle}>Financial Health</Text>
+        <Text style={[styles.healthTitle, { color: Colors.textPrimary }]}>Financial Health</Text>
         <Text style={[styles.healthStatus, { color }]}>{label}</Text>
         <ProgressBar progress={score / 100} color={color} style={{ marginTop: 8 }} />
       </View>
@@ -39,7 +40,8 @@ function HealthScore({ score }: { score: number }) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { stats, achievements, transactions, budgets, getMonthlyIncome, getMonthlyExpenses, getBudgetUsage } = useFinance();
+  const Colors = useColors();
+  const { stats, achievements, budgets, getMonthlyIncome, getMonthlyExpenses, getBudgetUsage } = useFinance();
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
   const xpNeeded = xpForNextLevel(stats.level);
@@ -66,14 +68,14 @@ export default function ProfileScreen() {
   const levelTitle = stats.level <= 3 ? 'Beginner' : stats.level <= 7 ? 'Tracker' : stats.level <= 12 ? 'Saver' : stats.level <= 20 ? 'Expert' : 'Master';
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.title}>Profile</Text>
-          <TouchableOpacity style={styles.settingsBtn} onPress={() => router.push('/settings')}>
+          <Text style={[styles.title, { color: Colors.textPrimary }]}>Profile</Text>
+          <TouchableOpacity style={[styles.settingsBtn, { backgroundColor: Colors.card }]} onPress={() => router.push('/settings')}>
             <MaterialIcons name="settings" size={22} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -82,28 +84,28 @@ export default function ProfileScreen() {
           <View style={styles.levelHeader}>
             <CashperMascot mood="happy" size={60} showMessage={false} />
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={styles.levelTitle}>Level {stats.level} {levelTitle}</Text>
-              <Text style={styles.xpText}>{stats.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
+              <Text style={[styles.levelTitle, { color: Colors.textPrimary }]}>Level {stats.level} {levelTitle}</Text>
+              <Text style={[styles.xpText, { color: Colors.textMuted }]}>{stats.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
               <ProgressBar progress={xpProgress} color={Colors.accent} style={{ marginTop: 8 }} />
             </View>
           </View>
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, { backgroundColor: Colors.cardLight }]}>
             <View style={styles.statItem}>
               <MaterialIcons name="local-fire-department" size={20} color={Colors.accent} />
-              <Text style={styles.statValue}>{stats.streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>{stats.streak}</Text>
+              <Text style={[styles.statLabel, { color: Colors.textMuted }]}>Day Streak</Text>
             </View>
-            <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
             <View style={styles.statItem}>
               <MaterialIcons name="receipt-long" size={20} color={Colors.info} />
-              <Text style={styles.statValue}>{stats.totalTransactions}</Text>
-              <Text style={styles.statLabel}>Transactions</Text>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>{stats.totalTransactions}</Text>
+              <Text style={[styles.statLabel, { color: Colors.textMuted }]}>Transactions</Text>
             </View>
-            <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
             <View style={styles.statItem}>
               <MaterialIcons name="emoji-events" size={20} color={Colors.xpGold} />
-              <Text style={styles.statValue}>{stats.achievements.length}</Text>
-              <Text style={styles.statLabel}>Badges</Text>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>{stats.achievements.length}</Text>
+              <Text style={[styles.statLabel, { color: Colors.textMuted }]}>Badges</Text>
             </View>
           </View>
         </Card>
@@ -113,14 +115,14 @@ export default function ProfileScreen() {
         </Card>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Spending by Category</Text>
+          <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Spending by Category</Text>
           <Card>
             <CategoryPieChart />
           </Card>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
+          <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>Achievements</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {allAchievements.map(a => (
               <AchievementBadge key={a.id} achievement={a} unlocked={stats.achievements.includes(a.id)} />
@@ -128,9 +130,9 @@ export default function ProfileScreen() {
           </ScrollView>
         </View>
 
-        <TouchableOpacity style={styles.insightsBtn} onPress={() => router.push('/ai-insights')}>
+        <TouchableOpacity style={[styles.insightsBtn, { backgroundColor: Colors.card, borderColor: Colors.accent + '30' }]} onPress={() => router.push('/ai-insights')}>
           <MaterialIcons name="auto-awesome" size={20} color={Colors.accent} />
-          <Text style={styles.insightsBtnText}>View AI Insights</Text>
+          <Text style={[styles.insightsBtnText, { color: Colors.textPrimary }]}>View AI Insights</Text>
           <MaterialIcons name="chevron-right" size={20} color={Colors.accent} />
         </TouchableOpacity>
       </ScrollView>
@@ -139,33 +141,28 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.backgroundDark },
+  screen: { flex: 1 },
   content: { paddingHorizontal: 20 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { color: Colors.textPrimary, fontSize: 28, fontWeight: '700' as const },
-  settingsBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 28, fontWeight: '700' as const },
+  settingsBtn: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   levelCard: { marginBottom: 16 },
   levelHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  avatar: { width: 60, height: 60, borderRadius: 20, backgroundColor: Colors.accent + '20', justifyContent: 'center', alignItems: 'center' },
-  levelTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const },
-  xpText: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
-  statsRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.cardLight, borderRadius: 14, padding: 16 },
+  levelTitle: { fontSize: 18, fontWeight: '700' as const },
+  xpText: { fontSize: 12, marginTop: 2 },
+  statsRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 16 },
   statItem: { flex: 1, alignItems: 'center', gap: 4 },
-  statValue: { color: Colors.textPrimary, fontSize: 20, fontWeight: '700' as const },
-  statLabel: { color: Colors.textMuted, fontSize: 11 },
-  statDivider: { width: 1, height: 36, backgroundColor: Colors.border },
+  statValue: { fontSize: 20, fontWeight: '700' as const },
+  statLabel: { fontSize: 11 },
+  statDivider: { width: 1, height: 36 },
   section: { marginBottom: 20 },
-  sectionTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const, marginBottom: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '700' as const, marginBottom: 12 },
   healthCard: { flexDirection: 'row', alignItems: 'center' },
   healthScoreCircle: { alignItems: 'center' },
   healthScoreNum: { fontSize: 42, fontWeight: '700' as const },
-  healthScoreLabel: { color: Colors.textMuted, fontSize: 12 },
-  healthTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '700' as const },
+  healthScoreLabel: { fontSize: 12 },
+  healthTitle: { fontSize: 16, fontWeight: '700' as const },
   healthStatus: { fontSize: 14, fontWeight: '600' as const, marginTop: 2 },
-  insightsBtn: {
-    backgroundColor: Colors.card, borderRadius: 16, padding: 16,
-    flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4,
-    borderWidth: 1, borderColor: Colors.accent + '30',
-  },
-  insightsBtnText: { color: Colors.textPrimary, fontSize: 15, fontWeight: '600' as const, flex: 1 },
+  insightsBtn: { borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, borderWidth: 1 },
+  insightsBtnText: { fontSize: 15, fontWeight: '600' as const, flex: 1 },
 });

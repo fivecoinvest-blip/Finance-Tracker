@@ -1,4 +1,4 @@
-export const Colors = {
+export const LightColors = {
   primary: '#FF6B35',
   primaryLight: '#FF8C5A',
   accent: '#FF6B35',
@@ -45,18 +45,69 @@ export const Colors = {
   categoryOther: '#95A5A6',
 };
 
+export const DarkColors = {
+  primary: '#FF6B35',
+  primaryLight: '#FF8C5A',
+  accent: '#FF6B35',
+  accentLight: '#3A2015',
+
+  success: '#2ECC71',
+  danger: '#FF5252',
+  warning: '#FFA726',
+  info: '#42A5F5',
+
+  backgroundDark: '#0E0E10',
+  backgroundMid: '#1A1A1D',
+  card: '#242428',
+  cardLight: '#2E2E33',
+  border: '#3A3A40',
+
+  textPrimary: '#F2F2F7',
+  textSecondary: '#AEAEB2',
+  textMuted: '#636366',
+  textDark: '#FFFFFF',
+
+  income: '#2ECC71',
+  expense: '#FF5252',
+  transfer: '#42A5F5',
+
+  tabBar: '#1A1A1D',
+  tabBarBorder: '#3A3A40',
+  tabActive: '#FF6B35',
+  tabInactive: '#636366',
+
+  xpGold: '#FF6B35',
+  xpSilver: '#8E8E93',
+  xpBronze: '#CD7F32',
+
+  categoryFood: '#EF5350',
+  categoryTransport: '#42A5F5',
+  categoryBills: '#AB47BC',
+  categoryShopping: '#FFA726',
+  categoryHealth: '#66BB6A',
+  categoryEntertainment: '#26C6DA',
+  categoryEducation: '#FFCA28',
+  categorySavings: '#66BB6A',
+  categorySalary: '#66BB6A',
+  categoryOther: '#78909C',
+};
+
+export type ColorPalette = typeof LightColors;
+
+export const Colors = LightColors;
+
 export const CATEGORY_COLORS: Record<string, string> = {
-  Food: Colors.categoryFood,
-  Transport: Colors.categoryTransport,
-  Bills: Colors.categoryBills,
-  Shopping: Colors.categoryShopping,
-  Health: Colors.categoryHealth,
-  Entertainment: Colors.categoryEntertainment,
-  Education: Colors.categoryEducation,
-  Savings: Colors.categorySavings,
-  Salary: Colors.categorySalary,
-  Other: Colors.categoryOther,
-  Transfer: Colors.transfer,
+  Food: LightColors.categoryFood,
+  Transport: LightColors.categoryTransport,
+  Bills: LightColors.categoryBills,
+  Shopping: LightColors.categoryShopping,
+  Health: LightColors.categoryHealth,
+  Entertainment: LightColors.categoryEntertainment,
+  Education: LightColors.categoryEducation,
+  Savings: LightColors.categorySavings,
+  Salary: LightColors.categorySalary,
+  Other: LightColors.categoryOther,
+  Transfer: LightColors.transfer,
 };
 
 export const CATEGORY_ICONS: Record<string, string> = {

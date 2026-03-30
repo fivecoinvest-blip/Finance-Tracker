@@ -54,7 +54,8 @@ A personal finance tracker mobile app for iOS and Android.
 ### Architecture
 - **State**: React Context (`FinanceContext`) with AsyncStorage persistence
 - **Navigation**: Expo Router with 5-tab layout (Home, Wallets, Transactions, Budget, Profile)
-- **Styling**: React Native StyleSheet with deep navy + gold color scheme
+- **Theming**: Full light/dark mode via `ThemeContext` (`LightColors`/`DarkColors` in `constants/colors.ts`). All screens use `useColors()` hook for dynamic colors. Toggle persisted to AsyncStorage. Settings screen has live Dark Mode switch.
+- **Color pattern**: All components call `const Colors = useColors()` at the top; layout props stay in `StyleSheet.create`; color values applied inline via `[styles.foo, { color: Colors.textPrimary }]`.
 - **Storage**: `@react-native-async-storage/async-storage`
 - **Icons**: `@expo/vector-icons` (MaterialIcons) + SF Symbols on iOS
 

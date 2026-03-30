@@ -18,8 +18,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/ui/Card';
-import { Colors } from '@/constants/colors';
 import { useFinance } from '@/context/FinanceContext';
+import { useColors, useTheme } from '@/context/ThemeContext';
 
 const SETTINGS_KEYS = {
   adsRemoved: '@cashper_ads_removed',
@@ -44,16 +44,17 @@ function useToggle(key: string, defaultValue = true) {
 }
 
 function RestoreModal({ visible, onClose, onRestore }: { visible: boolean; onClose: () => void; onRestore: (json: string) => void }) {
+  const Colors = useColors();
   const [input, setInput] = useState('');
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={mStyles.overlay}>
-        <View style={mStyles.sheet}>
-          <View style={mStyles.handle} />
-          <Text style={mStyles.title}>Restore Backup</Text>
-          <Text style={mStyles.desc}>Paste your Cashper backup JSON below. This will replace all current data.</Text>
+      <View style={styles.overlay}>
+        <View style={[styles.sheet, { backgroundColor: Colors.card }]}>
+          <View style={[styles.handle, { backgroundColor: Colors.border }]} />
+          <Text style={[styles.sheetTitle, { color: Colors.textPrimary }]}>Restore Backup</Text>
+          <Text style={[styles.sheetDesc, { color: Colors.textMuted }]}>Paste your Cashper backup JSON below. This will replace all current data.</Text>
           <TextInput
-            style={mStyles.input}
+            style={[styles.jsonInput, { backgroundColor: Colors.backgroundDark, color: Colors.textPrimary, borderColor: Colors.border }]}
             multiline
             numberOfLines={8}
             placeholder='{"wallets":[...],"transactions":[...],...}'
@@ -63,7 +64,7 @@ function RestoreModal({ visible, onClose, onRestore }: { visible: boolean; onClo
           />
           {Platform.OS === 'web' && (
             <TouchableOpacity
-              style={mStyles.fileBtn}
+              style={styles.fileBtn}
               onPress={() => {
                 const el = document.createElement('input');
                 el.type = 'file';
@@ -79,19 +80,19 @@ function RestoreModal({ visible, onClose, onRestore }: { visible: boolean; onClo
               }}
             >
               <MaterialIcons name="folder-open" size={18} color={Colors.accent} />
-              <Text style={mStyles.fileBtnText}>Choose .json file</Text>
+              <Text style={[styles.fileBtnText, { color: Colors.accent }]}>Choose .json file</Text>
             </TouchableOpacity>
           )}
-          <View style={mStyles.actions}>
-            <TouchableOpacity style={mStyles.cancelBtn} onPress={onClose}>
-              <Text style={mStyles.cancelText}>Cancel</Text>
+          <View style={styles.sheetActions}>
+            <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: Colors.backgroundDark }]} onPress={onClose}>
+              <Text style={[styles.cancelText, { color: Colors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[mStyles.confirmBtn, !input.trim() && { opacity: 0.4 }]}
+              style={[styles.confirmBtn, { backgroundColor: Colors.accent }, !input.trim() && { opacity: 0.4 }]}
               onPress={() => { onRestore(input); onClose(); }}
               disabled={!input.trim()}
             >
-              <Text style={mStyles.confirmText}>Restore</Text>
+              <Text style={styles.confirmText}>Restore</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -101,55 +102,29 @@ function RestoreModal({ visible, onClose, onRestore }: { visible: boolean; onClo
 }
 
 function PrivacyModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const Colors = useColors();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={mStyles.fullOverlay}>
-        <View style={mStyles.fullSheet}>
-          <View style={mStyles.fullHeader}>
-            <Text style={mStyles.fullTitle}>Privacy Policy</Text>
-            <TouchableOpacity onPress={onClose} style={mStyles.closeBtn}>
+      <View style={styles.fullOverlay}>
+        <View style={[styles.fullSheet, { backgroundColor: Colors.backgroundMid }]}>
+          <View style={[styles.fullHeader, { borderBottomColor: Colors.border }]}>
+            <Text style={[styles.fullTitle, { color: Colors.textPrimary }]}>Privacy Policy</Text>
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: Colors.backgroundDark }]}>
               <MaterialIcons name="close" size={22} color={Colors.textPrimary} />
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={mStyles.fullContent} showsVerticalScrollIndicator={false}>
-            <Text style={mStyles.policyDate}>Effective date: January 1, 2025</Text>
-            <Text style={mStyles.policyHeading}>1. Introduction</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper ("we", "our", or "us") is a personal finance tracker app. We are committed to protecting your privacy.
-              This Privacy Policy explains how we handle information when you use our mobile application.
-            </Text>
-            <Text style={mStyles.policyHeading}>2. Data Collection</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper does NOT collect, transmit, or store any personal or financial data on external servers.
-              All data you enter — including wallets, transactions, and budgets — is stored exclusively on your device
-              using local storage (AsyncStorage). No data is shared with third parties.
-            </Text>
-            <Text style={mStyles.policyHeading}>3. Data You Enter</Text>
-            <Text style={mStyles.policyBody}>
-              • Wallet names and balances{'\n'}
-              • Transaction amounts, categories, and descriptions{'\n'}
-              • Budget limits and categories{'\n'}
-              • Gamification stats (XP, level, streaks){'\n\n'}
-              All of this data remains on your device and is never sent to us or any third party.
-            </Text>
-            <Text style={mStyles.policyHeading}>4. Analytics & Crash Reporting</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper does not use any analytics, crash reporting, or advertising SDK that transmits data off-device.
-            </Text>
-            <Text style={mStyles.policyHeading}>5. Children's Privacy</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper is designed for general use. We do not knowingly collect information from children under 13.
-            </Text>
-            <Text style={mStyles.policyHeading}>6. Changes to This Policy</Text>
-            <Text style={mStyles.policyBody}>
-              We may update this policy from time to time. Any changes will be reflected in the updated effective date
-              above and notified via app update notes.
-            </Text>
-            <Text style={mStyles.policyHeading}>7. Contact Us</Text>
-            <Text style={mStyles.policyBody}>
-              If you have questions about this Privacy Policy, please contact us at:{'\n'}
-              support@cashperapp.ph
-            </Text>
+          <ScrollView contentContainerStyle={styles.fullContent} showsVerticalScrollIndicator={false}>
+            <Text style={[styles.policyDate, { color: Colors.textMuted }]}>Effective date: January 1, 2025</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>1. Introduction</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>Cashper is a personal finance tracker app. We are committed to protecting your privacy. This Privacy Policy explains how we handle information when you use our mobile application.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>2. Data Collection</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>Cashper does NOT collect, transmit, or store any personal or financial data on external servers. All data you enter is stored exclusively on your device using local storage (AsyncStorage). No data is shared with third parties.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>3. Data You Enter</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>{'• Wallet names and balances\n• Transaction amounts, categories, and descriptions\n• Budget limits and categories\n• Gamification stats (XP, level, streaks)\n\nAll data remains on your device and is never sent to us or any third party.'}</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>4. Analytics & Crash Reporting</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>Cashper does not use any analytics, crash reporting, or advertising SDK that transmits data off-device.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>5. Contact Us</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>support@cashperapp.ph</Text>
           </ScrollView>
         </View>
       </View>
@@ -158,69 +133,31 @@ function PrivacyModal({ visible, onClose }: { visible: boolean; onClose: () => v
 }
 
 function TermsModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const Colors = useColors();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={mStyles.fullOverlay}>
-        <View style={mStyles.fullSheet}>
-          <View style={mStyles.fullHeader}>
-            <Text style={mStyles.fullTitle}>Terms of Service</Text>
-            <TouchableOpacity onPress={onClose} style={mStyles.closeBtn}>
+      <View style={styles.fullOverlay}>
+        <View style={[styles.fullSheet, { backgroundColor: Colors.backgroundMid }]}>
+          <View style={[styles.fullHeader, { borderBottomColor: Colors.border }]}>
+            <Text style={[styles.fullTitle, { color: Colors.textPrimary }]}>Terms of Service</Text>
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: Colors.backgroundDark }]}>
               <MaterialIcons name="close" size={22} color={Colors.textPrimary} />
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={mStyles.fullContent} showsVerticalScrollIndicator={false}>
-            <Text style={mStyles.policyDate}>Effective date: January 1, 2025</Text>
-            <Text style={mStyles.policyHeading}>1. Acceptance of Terms</Text>
-            <Text style={mStyles.policyBody}>
-              By downloading or using Cashper, you agree to be bound by these Terms of Service.
-              If you do not agree, please uninstall the application.
-            </Text>
-            <Text style={mStyles.policyHeading}>2. Description of Service</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper is a personal finance and budget tracking application designed to help you manage
-              your income, expenses, wallets, and savings goals. All features are provided for personal,
-              non-commercial use.
-            </Text>
-            <Text style={mStyles.policyHeading}>3. No Financial Advice</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper is a tracking tool only. The AI insights and analytics provided within the app
-              are for informational purposes and do not constitute financial, investment, legal, or
-              tax advice. Always consult a qualified financial professional for financial decisions.
-            </Text>
-            <Text style={mStyles.policyHeading}>4. Data Responsibility</Text>
-            <Text style={mStyles.policyBody}>
-              All data stored in Cashper is your responsibility. We strongly recommend using the
-              Backup feature regularly. We are not liable for any data loss due to device failure,
-              app uninstallation, or storage clearing.
-            </Text>
-            <Text style={mStyles.policyHeading}>5. Purchases</Text>
-            <Text style={mStyles.policyBody}>
-              In-app purchases (such as "Remove Ads") are one-time payments. All purchases are
-              final and non-refundable unless required by applicable law. Purchases are tied to
-              your device and may not be transferable.
-            </Text>
-            <Text style={mStyles.policyHeading}>6. Prohibited Use</Text>
-            <Text style={mStyles.policyBody}>
-              You agree not to:{'\n'}
-              • Reverse engineer or decompile the app{'\n'}
-              • Use the app for illegal financial activities{'\n'}
-              • Attempt to circumvent any in-app purchase mechanisms
-            </Text>
-            <Text style={mStyles.policyHeading}>7. Limitation of Liability</Text>
-            <Text style={mStyles.policyBody}>
-              Cashper is provided "as is" without warranties of any kind. We are not responsible
-              for any direct, indirect, incidental, or consequential damages arising from your
-              use of the app.
-            </Text>
-            <Text style={mStyles.policyHeading}>8. Governing Law</Text>
-            <Text style={mStyles.policyBody}>
-              These Terms are governed by the laws of the Republic of the Philippines.
-            </Text>
-            <Text style={mStyles.policyHeading}>9. Contact</Text>
-            <Text style={mStyles.policyBody}>
-              For questions or concerns:{'\n'}
-              support@cashperapp.ph
-            </Text>
+          <ScrollView contentContainerStyle={styles.fullContent} showsVerticalScrollIndicator={false}>
+            <Text style={[styles.policyDate, { color: Colors.textMuted }]}>Effective date: January 1, 2025</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>1. Acceptance of Terms</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>By downloading or using Cashper, you agree to be bound by these Terms of Service.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>2. No Financial Advice</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>Cashper is a tracking tool only. AI insights are for informational purposes and do not constitute financial advice. Always consult a qualified professional for financial decisions.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>3. Data Responsibility</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>All data stored in Cashper is your responsibility. Use the Backup feature regularly. We are not liable for data loss due to device failure or app uninstallation.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>4. Purchases</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>In-app purchases (such as "Remove Ads") are one-time, final, and non-refundable unless required by applicable law.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>5. Governing Law</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>These Terms are governed by the laws of the Republic of the Philippines.</Text>
+            <Text style={[styles.policyHeading, { color: Colors.textPrimary }]}>6. Contact</Text>
+            <Text style={[styles.policyBody, { color: Colors.textSecondary }]}>support@cashperapp.ph</Text>
           </ScrollView>
         </View>
       </View>
@@ -230,6 +167,8 @@ function TermsModal({ visible, onClose }: { visible: boolean; onClose: () => voi
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const Colors = useColors();
+  const { isDark, toggleTheme } = useTheme();
   const { transactions, wallets, budgets, stats } = useFinance();
   const [adsRemoved, setAdsRemoved] = useToggle(SETTINGS_KEYS.adsRemoved, false);
   const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
@@ -243,14 +182,14 @@ export default function SettingsScreen() {
     if (adsRemoved) return;
     Alert.alert(
       'Remove Ads Forever',
-      'Pay ₱999 once and enjoy Cashper ad-free forever. This is a one-time purchase.',
+      'Pay ₱999 once and enjoy Cashper ad-free forever.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Purchase ₱999', onPress: async () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             await setAdsRemoved(true);
-            Alert.alert('Thank you! 🎉', 'Ads removed permanently. Enjoy Cashper ad-free!');
+            Alert.alert('Thank you!', 'Ads removed permanently. Enjoy Cashper ad-free!');
           }
         },
       ]
@@ -259,49 +198,31 @@ export default function SettingsScreen() {
 
   const handleBackup = async () => {
     try {
-      const data = {
-        version: '1.0',
-        exportedAt: new Date().toISOString(),
-        wallets,
-        transactions,
-        budgets,
-        stats,
-      };
+      const data = { version: '1.0', exportedAt: new Date().toISOString(), wallets, transactions, budgets, stats };
       const json = JSON.stringify(data, null, 2);
-
       if (Platform.OS === 'web') {
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `cashper-backup-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
         Alert.alert('Backup Downloaded', 'Your backup JSON file has been downloaded.');
       } else {
-        await Share.share({
-          message: json,
-          title: 'Cashper Backup',
-        });
+        await Share.share({ message: json, title: 'Cashper Backup' });
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e) {
-      Alert.alert('Error', 'Could not create backup. Please try again.');
-    }
+    } catch { Alert.alert('Error', 'Could not create backup.'); }
   };
 
   const handleRestore = async (json: string) => {
     try {
       const data = JSON.parse(json);
-      if (!data.wallets || !data.transactions) {
-        Alert.alert('Invalid Backup', 'The JSON does not look like a valid Cashper backup.');
-        return;
-      }
+      if (!data.wallets || !data.transactions) { Alert.alert('Invalid Backup', 'The JSON does not look like a valid Cashper backup.'); return; }
       Alert.alert(
         'Restore Backup?',
-        `This will replace all your current data with:\n• ${data.wallets.length} wallets\n• ${data.transactions.length} transactions\n• ${(data.budgets ?? []).length} budgets\n\nThis cannot be undone.`,
+        `This will replace all your current data with:\n• ${data.wallets.length} wallets\n• ${data.transactions.length} transactions\n\nThis cannot be undone.`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -318,9 +239,7 @@ export default function SettingsScreen() {
           },
         ]
       );
-    } catch {
-      Alert.alert('Invalid JSON', 'Could not parse the backup. Make sure you pasted the full backup file.');
-    }
+    } catch { Alert.alert('Invalid JSON', 'Could not parse the backup file.'); }
   };
 
   const handleExportCSV = async () => {
@@ -334,67 +253,62 @@ export default function SettingsScreen() {
         return `"${date}","${tx.type}","${tx.category}","${desc}","${tx.amount}","${wallet?.name ?? ''}","${notes}"`;
       }).join('\n');
       const csv = headers + rows;
-
       if (Platform.OS === 'web') {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `cashper-transactions-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
         Alert.alert('Export Done', 'CSV file has been downloaded.');
       } else {
         await Share.share({ message: csv, title: 'Cashper Transactions CSV' });
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert('Error', 'Could not export. Please try again.');
-    }
+    } catch { Alert.alert('Error', 'Could not export.'); }
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
       <RestoreModal visible={showRestore} onClose={() => setShowRestore(false)} onRestore={handleRestore} />
       <PrivacyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
       <TermsModal visible={showTerms} onClose={() => setShowTerms(false)} />
 
       <View style={[styles.header, { paddingTop: topPadding + 8 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: Colors.card }]}>
           <MaterialIcons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: Colors.textPrimary }]}>Settings</Text>
         <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Card style={styles.proCard}>
+        <Card style={[styles.proCard, { borderColor: Colors.accent + '40', borderWidth: 1 }]}>
           <View style={styles.proHeader}>
             <MaterialIcons name="workspace-premium" size={28} color={Colors.accent} />
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.proTitle}>Remove Ads</Text>
-              <Text style={styles.proDesc}>One-time payment. Enjoy Cashper ad-free forever.</Text>
+              <Text style={[styles.proTitle, { color: Colors.textPrimary }]}>Remove Ads</Text>
+              <Text style={[styles.proDesc, { color: Colors.textMuted }]}>One-time payment. Enjoy Cashper ad-free forever.</Text>
             </View>
           </View>
           {adsRemoved ? (
-            <View style={styles.adsRemovedBadge}>
+            <View style={[styles.adsRemovedBadge, { backgroundColor: Colors.success + '20' }]}>
               <MaterialIcons name="check-circle" size={16} color={Colors.success} />
-              <Text style={styles.adsRemovedText}>Ads removed — Thank you!</Text>
+              <Text style={[styles.adsRemovedText, { color: Colors.success }]}>Ads removed — Thank you!</Text>
             </View>
           ) : (
-            <TouchableOpacity style={styles.purchaseBtn} onPress={handleRemoveAds}>
+            <TouchableOpacity style={[styles.purchaseBtn, { backgroundColor: Colors.accent }]} onPress={handleRemoveAds}>
               <Text style={styles.purchaseBtnText}>Remove Ads — ₱999</Text>
             </TouchableOpacity>
           )}
         </Card>
 
-        <Text style={styles.sectionLabel}>Notifications</Text>
+        <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Notifications</Text>
         <Card style={styles.settingsGroup}>
-          <View style={styles.settingsRow}>
+          <View style={[styles.settingsRow, { borderBottomColor: Colors.border }]}>
             <MaterialIcons name="notifications" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
-            <Text style={styles.settingsLabel}>Budget Alerts</Text>
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Budget Alerts</Text>
             <Switch
               value={budgetAlerts}
               onValueChange={(v) => { setBudgetAlerts(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
@@ -404,7 +318,7 @@ export default function SettingsScreen() {
           </View>
           <View style={[styles.settingsRow, styles.lastRow]}>
             <MaterialIcons name="local-fire-department" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
-            <Text style={styles.settingsLabel}>Streak Reminders</Text>
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Streak Reminders</Text>
             <Switch
               value={streakReminders}
               onValueChange={(v) => { setStreakReminders(v); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
@@ -414,72 +328,73 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Text style={styles.sectionLabel}>Appearance</Text>
+        <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Appearance</Text>
         <Card style={styles.settingsGroup}>
-          <TouchableOpacity
-            style={[styles.settingsRow, styles.lastRow]}
-            onPress={() => Alert.alert('Dark Mode', 'Dark mode is coming in a future update. Stay tuned!')}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="dark-mode" size={20} color={Colors.textMuted} style={styles.settingsIcon} />
-            <Text style={[styles.settingsLabel, { color: Colors.textMuted }]}>Dark Mode</Text>
-            <Text style={styles.comingSoon}>Coming soon</Text>
-          </TouchableOpacity>
+          <View style={[styles.settingsRow, styles.lastRow]}>
+            <MaterialIcons name="dark-mode" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Dark Mode</Text>
+            <Switch
+              value={isDark}
+              onValueChange={() => { toggleTheme(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              trackColor={{ true: Colors.accent, false: Colors.border }}
+              thumbColor="#fff"
+            />
+          </View>
         </Card>
 
-        <Text style={styles.sectionLabel}>Data</Text>
+        <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>Data</Text>
         <Card style={styles.settingsGroup}>
-          <TouchableOpacity style={styles.settingsRow} onPress={handleBackup} activeOpacity={0.7}>
+          <TouchableOpacity style={[styles.settingsRow, { borderBottomColor: Colors.border }]} onPress={handleBackup} activeOpacity={0.7}>
             <MaterialIcons name="backup" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingsLabel}>Backup Data</Text>
-              <Text style={styles.settingsSubtext}>Export as JSON</Text>
+              <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Backup Data</Text>
+              <Text style={[styles.settingsSubtext, { color: Colors.textMuted }]}>Export as JSON</Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsRow} onPress={() => setShowRestore(true)} activeOpacity={0.7}>
+          <TouchableOpacity style={[styles.settingsRow, { borderBottomColor: Colors.border }]} onPress={() => setShowRestore(true)} activeOpacity={0.7}>
             <MaterialIcons name="restore" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingsLabel}>Restore Backup</Text>
-              <Text style={styles.settingsSubtext}>Import from JSON file or paste</Text>
+              <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Restore Backup</Text>
+              <Text style={[styles.settingsSubtext, { color: Colors.textMuted }]}>Import from JSON file or paste</Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.settingsRow, styles.lastRow]} onPress={handleExportCSV} activeOpacity={0.7}>
             <MaterialIcons name="table-chart" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingsLabel}>Export to CSV</Text>
-              <Text style={styles.settingsSubtext}>{transactions.length} transactions</Text>
+              <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Export to CSV</Text>
+              <Text style={[styles.settingsSubtext, { color: Colors.textMuted }]}>{transactions.length} transactions</Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
         </Card>
 
-        <Text style={styles.sectionLabel}>About</Text>
+        <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>About</Text>
         <Card style={styles.settingsGroup}>
-          <View style={styles.settingsRow}>
+          <View style={[styles.settingsRow, { borderBottomColor: Colors.border }]}>
             <MaterialIcons name="info" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
-            <Text style={styles.settingsLabel}>App Version</Text>
-            <Text style={styles.settingsInfoValue}>1.0.0</Text>
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>App Version</Text>
+            <Text style={[styles.settingsInfoValue, { color: Colors.textMuted }]}>1.0.0</Text>
           </View>
-          <TouchableOpacity style={styles.settingsRow} onPress={() => setShowPrivacy(true)} activeOpacity={0.7}>
+          <TouchableOpacity style={[styles.settingsRow, { borderBottomColor: Colors.border }]} onPress={() => setShowPrivacy(true)} activeOpacity={0.7}>
             <MaterialIcons name="privacy-tip" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
-            <Text style={styles.settingsLabel}>Privacy Policy</Text>
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Privacy Policy</Text>
             <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.settingsRow, styles.lastRow]} onPress={() => setShowTerms(true)} activeOpacity={0.7}>
             <MaterialIcons name="receipt-long" size={20} color={Colors.textSecondary} style={styles.settingsIcon} />
-            <Text style={styles.settingsLabel}>Terms of Service</Text>
+            <Text style={[styles.settingsLabel, { color: Colors.textPrimary }]}>Terms of Service</Text>
             <MaterialIcons name="chevron-right" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
         </Card>
 
         <View style={styles.statsFooter}>
-          <Text style={styles.statsFooterLabel}>Your Data Summary</Text>
-          <Text style={styles.statsFooterValue}>{transactions.length} transactions · {wallets.length} wallets · {budgets.length} budgets</Text>
-          <View style={styles.localBadge}>
+          <Text style={[styles.statsFooterLabel, { color: Colors.textMuted }]}>Your Data Summary</Text>
+          <Text style={[styles.statsFooterValue, { color: Colors.textMuted }]}>{transactions.length} transactions · {wallets.length} wallets · {budgets.length} budgets</Text>
+          <View style={[styles.localBadge, { backgroundColor: Colors.success + '15' }]}>
             <MaterialIcons name="lock" size={12} color={Colors.success} />
-            <Text style={styles.localBadgeText}>All data stored locally on your device</Text>
+            <Text style={[styles.localBadgeText, { color: Colors.success }]}>All data stored locally on your device</Text>
           </View>
         </View>
       </ScrollView>
@@ -488,61 +403,52 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: Colors.backgroundDark },
+  screen: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
-  backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const },
+  backBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700' as const },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
-  proCard: { marginBottom: 24, borderWidth: 1, borderColor: Colors.accent + '40' },
+  proCard: { marginBottom: 24 },
   proHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  proTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '700' as const },
-  proDesc: { color: Colors.textMuted, fontSize: 13, marginTop: 2 },
-  adsRemovedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.success + '20', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14 },
-  adsRemovedText: { color: Colors.success, fontSize: 13, fontWeight: '600' as const },
-  purchaseBtn: { backgroundColor: Colors.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  proTitle: { fontSize: 16, fontWeight: '700' as const },
+  proDesc: { fontSize: 13, marginTop: 2 },
+  adsRemovedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14 },
+  adsRemovedText: { fontSize: 13, fontWeight: '600' as const },
+  purchaseBtn: { borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   purchaseBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' as const },
-  sectionLabel: { color: Colors.textMuted, fontSize: 12, fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8, marginTop: 4 },
+  sectionLabel: { fontSize: 12, fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8, marginTop: 4 },
   settingsGroup: { marginBottom: 20, padding: 0, overflow: 'hidden' },
-  settingsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1 },
   lastRow: { borderBottomWidth: 0 },
   settingsIcon: { marginRight: 14 },
-  settingsLabel: { flex: 1, color: Colors.textPrimary, fontSize: 15 },
-  settingsSubtext: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
-  settingsInfoValue: { color: Colors.textMuted, fontSize: 14 },
-  comingSoon: { color: Colors.textMuted, fontSize: 12, fontStyle: 'italic' as const },
+  settingsLabel: { flex: 1, fontSize: 15 },
+  settingsSubtext: { fontSize: 12, marginTop: 2 },
+  settingsInfoValue: { fontSize: 14 },
   statsFooter: { alignItems: 'center', paddingTop: 12 },
-  statsFooterLabel: { color: Colors.textMuted, fontSize: 12, fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 0.8 },
-  statsFooterValue: { color: Colors.textMuted, fontSize: 13, marginTop: 4 },
-  localBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8, backgroundColor: Colors.success + '15', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
-  localBadgeText: { color: Colors.success, fontSize: 12, fontWeight: '500' as const },
-});
-
-const mStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
-  handle: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center' as const, marginBottom: 16 },
-  title: { color: Colors.textPrimary, fontSize: 20, fontWeight: '700' as const, marginBottom: 8 },
-  desc: { color: Colors.textMuted, fontSize: 13, marginBottom: 14 },
-  input: {
-    backgroundColor: Colors.backgroundDark, borderRadius: 12, padding: 12,
-    color: Colors.textPrimary, fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    borderWidth: 1, borderColor: Colors.border, minHeight: 120, textAlignVertical: 'top' as const,
-    marginBottom: 10,
-  },
+  statsFooterLabel: { fontSize: 12, fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 0.8 },
+  statsFooterValue: { fontSize: 13, marginTop: 4 },
+  localBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10 },
+  localBadgeText: { fontSize: 12, fontWeight: '500' as const },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
+  handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center' as const, marginBottom: 16 },
+  sheetTitle: { fontSize: 20, fontWeight: '700' as const, marginBottom: 8 },
+  sheetDesc: { fontSize: 13, marginBottom: 14 },
+  jsonInput: { borderRadius: 12, padding: 12, fontSize: 13, borderWidth: 1, minHeight: 120, textAlignVertical: 'top' as const, marginBottom: 10 },
   fileBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  fileBtnText: { color: Colors.accent, fontSize: 14, fontWeight: '600' as const },
-  actions: { flexDirection: 'row', gap: 12 },
-  cancelBtn: { flex: 1, backgroundColor: Colors.backgroundDark, borderRadius: 12, paddingVertical: 13, alignItems: 'center' as const },
-  cancelText: { color: Colors.textSecondary, fontWeight: '600' as const },
-  confirmBtn: { flex: 1, backgroundColor: Colors.danger, borderRadius: 12, paddingVertical: 13, alignItems: 'center' as const },
+  fileBtnText: { fontSize: 14, fontWeight: '600' as const },
+  sheetActions: { flexDirection: 'row', gap: 12 },
+  cancelBtn: { flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  cancelText: { fontWeight: '600' as const },
+  confirmBtn: { flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   confirmText: { color: '#FFFFFF', fontWeight: '700' as const },
-  fullOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  fullSheet: { flex: 1, backgroundColor: '#FFFFFF', marginTop: 48, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
-  fullHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  fullTitle: { color: Colors.textPrimary, fontSize: 20, fontWeight: '700' as const },
-  closeBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.backgroundDark, justifyContent: 'center', alignItems: 'center' },
-  fullContent: { padding: 24, paddingBottom: 60 },
-  policyDate: { color: Colors.textMuted, fontSize: 12, marginBottom: 20 },
-  policyHeading: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700' as const, marginTop: 20, marginBottom: 6 },
-  policyBody: { color: Colors.textSecondary, fontSize: 14, lineHeight: 22 },
+  fullOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+  fullSheet: { flex: 1, marginTop: 60, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  fullHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1 },
+  fullTitle: { fontSize: 20, fontWeight: '700' as const },
+  closeBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  fullContent: { padding: 20, paddingBottom: 40 },
+  policyDate: { fontSize: 12, marginBottom: 16 },
+  policyHeading: { fontSize: 15, fontWeight: '700' as const, marginTop: 16, marginBottom: 6 },
+  policyBody: { fontSize: 14, lineHeight: 22 },
 });
