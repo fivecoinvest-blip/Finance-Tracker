@@ -1,8 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Easing,
   Modal,
   Platform,
   ScrollView,
@@ -17,6 +19,35 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type Wallet, type WalletType } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
+
+function useCountUp(target: number, duration = 900): number {
+  const animRef = useRef(new Animated.Value(0));
+  const [display, setDisplay] = useState(0);
+  const prevRef = useRef(0);
+  const listenerRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    prevRef.current = target;
+
+    if (listenerRef.current) animRef.current.removeListener(listenerRef.current);
+    animRef.current.setValue(from);
+
+    listenerRef.current = animRef.current.addListener(({ value }) => setDisplay(value));
+    Animated.timing(animRef.current, {
+      toValue: target,
+      duration,
+      easing: Easing.out(Easing.exp),
+      useNativeDriver: false,
+    }).start();
+
+    return () => {
+      if (listenerRef.current) animRef.current.removeListener(listenerRef.current);
+    };
+  }, [target]);
+
+  return display;
+}
 
 const WALLET_TYPES: { type: WalletType; label: string; icon: string; color: string }[] = [
   { type: 'cash', label: 'Cash', icon: 'payments', color: '#27AE60' },
@@ -151,6 +182,19 @@ export default function WalletsScreen() {
   const [walletToDelete, setWalletToDelete] = useState<Wallet | undefined>(undefined);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
+  const totalBalance = getTotalBalance();
+  const animatedNetWorth = useCountUp(totalBalance);
+
+  const cardScale = useRef(new Animated.Value(0.88)).current;
+  useEffect(() => {
+    Animated.spring(cardScale, {
+      toValue: 1,
+      tension: 60,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handleDeleteConfirmed = async () => {
     if (!walletToDelete) return;
     await deleteWallet(walletToDelete.id);
@@ -184,13 +228,13 @@ export default function WalletsScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.totalCard, { backgroundColor: Colors.card }]}>
+        <Animated.View style={[styles.totalCard, { backgroundColor: Colors.card, transform: [{ scale: cardScale }] }]}>
           <Text style={[styles.totalLabel, { color: Colors.textMuted }]}>Net Worth</Text>
-          <Text style={[styles.totalAmount, { color: Colors.textPrimary }]}>
-            {formatAmount(getTotalBalance())}
+          <Text style={[styles.totalAmount, { color: totalBalance < 0 ? Colors.danger : Colors.textPrimary }]}>
+            {formatAmount(animatedNetWorth)}
           </Text>
           <Text style={[styles.walletCount, { color: Colors.textMuted }]}>{wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</Text>
-        </View>
+        </Animated.View>
 
         {wallets.length === 0 ? (
           <View style={styles.emptyState}>
