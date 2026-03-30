@@ -171,15 +171,62 @@ export default function SettingsScreen() {
   const Colors = useColors();
   const { isDark, toggleTheme } = useTheme();
   const { currency, setCurrencyByCode } = useCurrency();
-  const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock, lockNow } = useSecurity();
+  const { lockEnabled, biometricsAvailable, biometricType, enableLock, disableLock, lockNow, hasPin, savePin } = useSecurity();
   const { transactions, wallets, budgets, stats } = useFinance();
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [pinStep, setPinStep]           = useState<'enter' | 'confirm'>('enter');
+  const [pinFirst, setPinFirst]         = useState('');
+  const [pinInput, setPinInput]         = useState('');
+  const [pinError, setPinError]         = useState('');
   const [budgetAlerts, setBudgetAlerts] = useToggle(SETTINGS_KEYS.budgetAlerts, true);
   const [streakReminders, setStreakReminders] = useToggle(SETTINGS_KEYS.streakReminders, true);
   const [showRestore, setShowRestore] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
+
+  const PIN_LEN = 4;
+  const PAD_KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+
+  const openPinSetup = () => {
+    setPinStep('enter');
+    setPinFirst('');
+    setPinInput('');
+    setPinError('');
+    setShowPinSetup(true);
+  };
+
+  const handlePinKey = (key: string) => {
+    if (key === '⌫') {
+      setPinInput(p => p.slice(0, -1));
+      setPinError('');
+      return;
+    }
+    if (key === '' || pinInput.length >= PIN_LEN) return;
+    const next = pinInput + key;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPinInput(next);
+    if (next.length === PIN_LEN) {
+      if (pinStep === 'enter') {
+        setPinFirst(next);
+        setPinInput('');
+        setPinStep('confirm');
+        setPinError('');
+      } else {
+        if (next === pinFirst) {
+          savePin(next).then(() => {
+            setShowPinSetup(false);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          });
+        } else {
+          setPinError('PINs do not match — try again');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setTimeout(() => { setPinInput(''); setPinStep('enter'); setPinFirst(''); setPinError(''); }, 600);
+        }
+      }
+    }
+  };
 
   const handleBackup = async () => {
     try {
@@ -346,8 +393,14 @@ export default function SettingsScreen() {
               value={lockEnabled}
               onValueChange={async (v) => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                const success = v ? await enableLock() : await disableLock();
-                if (!success) Alert.alert('Authentication Failed', 'Could not verify your identity.');
+                if (v) {
+                  const success = await enableLock();
+                  if (!success) { Alert.alert('Authentication Failed', 'Could not verify your identity.'); return; }
+                  if (Platform.OS === 'web' && !hasPin) openPinSetup();
+                } else {
+                  const success = await disableLock();
+                  if (!success) Alert.alert('Authentication Failed', 'Could not verify your identity.');
+                }
               }}
               trackColor={{ true: Colors.accent, false: Colors.border }}
               thumbColor="#fff"
@@ -445,6 +498,63 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={showPinSetup} transparent animationType="fade" onRequestClose={() => {}}>
+        <View style={[styles.pinOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+          <View style={[styles.pinBox, { backgroundColor: Colors.background }]}>
+            <Text style={[styles.pinTitle, { color: Colors.textPrimary }]}>
+              {pinStep === 'enter' ? 'Set Your PIN' : 'Confirm Your PIN'}
+            </Text>
+            <Text style={[styles.pinSub, { color: Colors.textMuted }]}>
+              {pinStep === 'enter'
+                ? 'Choose a 4-digit PIN to lock Cashper'
+                : 'Enter the same PIN again to confirm'}
+            </Text>
+
+            <View style={styles.pinDotsRow}>
+              {Array.from({ length: PIN_LEN }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.pinDot,
+                    {
+                      backgroundColor: i < pinInput.length ? Colors.accent : 'transparent',
+                      borderColor: i < pinInput.length ? Colors.accent : Colors.border,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+
+            {pinError ? (
+              <Text style={[styles.pinError, { color: Colors.danger }]}>{pinError}</Text>
+            ) : null}
+
+            <View style={styles.pinPad}>
+              {PAD_KEYS.map((key, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.pinKey,
+                    key === '' && { opacity: 0 },
+                    key !== '' && key !== '⌫' && { backgroundColor: Colors.card },
+                  ]}
+                  onPress={() => handlePinKey(key)}
+                  disabled={key === ''}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.pinKeyText,
+                    { color: key === '⌫' ? Colors.textMuted : Colors.textPrimary },
+                  ]}>
+                    {key}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -495,4 +605,14 @@ const styles = StyleSheet.create({
   currencyCode: { fontSize: 15, fontWeight: '600' as const },
   currencyName: { fontSize: 12, marginTop: 1 },
   currencyBadge: { fontSize: 18, fontWeight: '700' as const, marginRight: 6 },
+  pinOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  pinBox: { borderRadius: 24, padding: 32, alignItems: 'center', width: 320 },
+  pinTitle: { fontSize: 20, fontWeight: '700' as const, marginBottom: 6 },
+  pinSub: { fontSize: 14, textAlign: 'center' as const, marginBottom: 28 },
+  pinDotsRow: { flexDirection: 'row' as const, gap: 16, marginBottom: 12 },
+  pinDot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2 },
+  pinError: { fontSize: 13, fontWeight: '600' as const, marginBottom: 8, textAlign: 'center' as const },
+  pinPad: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, justifyContent: 'center' as const, gap: 14, marginTop: 16, width: 260 },
+  pinKey: { width: 68, height: 68, borderRadius: 34, justifyContent: 'center' as const, alignItems: 'center' as const },
+  pinKeyText: { fontSize: 22, fontWeight: '500' as const },
 });

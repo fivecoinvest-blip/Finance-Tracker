@@ -11,6 +11,7 @@ import React, {
 import { AppState, type AppStateStatus, Platform } from 'react-native';
 
 const LOCK_KEY = '@cashper_lock_enabled';
+const PIN_KEY  = '@cashper_pin';
 const LOCK_DELAY_MS = 3000;
 
 interface SecurityContextValue {
@@ -18,10 +19,13 @@ interface SecurityContextValue {
   isLocked: boolean;
   biometricsAvailable: boolean;
   biometricType: string;
+  hasPin: boolean;
   enableLock: () => Promise<boolean>;
   disableLock: () => Promise<boolean>;
-  unlock: () => Promise<boolean>;
+  unlock: (pin?: string) => Promise<boolean>;
   lockNow: () => void;
+  savePin: (pin: string) => Promise<void>;
+  checkPin: (pin: string) => boolean;
 }
 
 const SecurityContext = createContext<SecurityContextValue | null>(null);
@@ -43,7 +47,7 @@ async function checkBiometrics(): Promise<{ available: boolean; label: string }>
   if (Platform.OS === 'web') return { available: false, label: 'Biometrics' };
   try {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    const isEnrolled  = await LocalAuthentication.isEnrolledAsync();
     if (!hasHardware || !isEnrolled) return { available: false, label: 'Biometrics' };
     const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
     return { available: true, label: getBiometricLabel(types) };
@@ -68,24 +72,31 @@ async function doAuthenticate(reason: string): Promise<boolean> {
 }
 
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
-  const [lockEnabled, setLockEnabled] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
+  const [lockEnabled, setLockEnabled]           = useState(false);
+  const [isLocked, setIsLocked]                 = useState(false);
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
-  const [biometricType, setBiometricType] = useState('Biometrics');
-  const [loaded, setLoaded] = useState(false);
+  const [biometricType, setBiometricType]       = useState('Biometrics');
+  const [storedPin, setStoredPin]               = useState<string | null>(null);
+  const [loaded, setLoaded]                     = useState(false);
 
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const appStateRef    = useRef<AppStateStatus>(AppState.currentState);
   const backgroundTime = useRef<number | null>(null);
   const lockEnabledRef = useRef(lockEnabled);
   lockEnabledRef.current = lockEnabled;
+
+  const hasPin = storedPin !== null;
 
   useEffect(() => {
     checkBiometrics().then(({ available, label }) => {
       setBiometricsAvailable(available);
       setBiometricType(label);
     });
-    AsyncStorage.getItem(LOCK_KEY).then(v => {
-      if (v === 'true') setLockEnabled(true);
+    Promise.all([
+      AsyncStorage.getItem(LOCK_KEY),
+      AsyncStorage.getItem(PIN_KEY),
+    ]).then(([lock, pin]) => {
+      if (lock === 'true') setLockEnabled(true);
+      if (pin) setStoredPin(pin);
       setLoaded(true);
     });
   }, []);
@@ -102,9 +113,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
             const elapsed = backgroundTime.current
               ? Date.now() - backgroundTime.current
               : Infinity;
-            if (elapsed > LOCK_DELAY_MS) {
-              setIsLocked(true);
-            }
+            if (elapsed > LOCK_DELAY_MS) setIsLocked(true);
           }
           backgroundTime.current = null;
         }
@@ -116,23 +125,28 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       const prev = appStateRef.current;
       appStateRef.current = next;
-
       if (prev === 'active' && (next === 'background' || next === 'inactive')) {
         backgroundTime.current = Date.now();
       }
-
       if (next === 'active' && lockEnabledRef.current) {
         const elapsed = backgroundTime.current
           ? Date.now() - backgroundTime.current
           : Infinity;
-        if (elapsed > LOCK_DELAY_MS) {
-          setIsLocked(true);
-        }
+        if (elapsed > LOCK_DELAY_MS) setIsLocked(true);
         backgroundTime.current = null;
       }
     });
     return () => sub.remove();
   }, [loaded]);
+
+  const savePin = useCallback(async (pin: string) => {
+    await AsyncStorage.setItem(PIN_KEY, pin);
+    setStoredPin(pin);
+  }, []);
+
+  const checkPin = useCallback((pin: string): boolean => {
+    return pin === storedPin;
+  }, [storedPin]);
 
   const lockNow = useCallback(() => {
     if (lockEnabledRef.current) setIsLocked(true);
@@ -155,8 +169,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const disableLock = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'web') {
       await AsyncStorage.setItem(LOCK_KEY, 'false');
+      await AsyncStorage.removeItem(PIN_KEY);
       setLockEnabled(false);
       setIsLocked(false);
+      setStoredPin(null);
       return true;
     }
     const success = await doAuthenticate('Confirm your identity to disable lock');
@@ -168,21 +184,31 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     return success;
   }, []);
 
-  const unlock = useCallback(async (): Promise<boolean> => {
+  const unlock = useCallback(async (pin?: string): Promise<boolean> => {
     if (Platform.OS === 'web') {
+      if (storedPin) {
+        if (pin === storedPin) {
+          setIsLocked(false);
+          return true;
+        }
+        return false;
+      }
       setIsLocked(false);
       return true;
     }
     const success = await doAuthenticate('Unlock Cashper');
     if (success) setIsLocked(false);
     return success;
-  }, []);
+  }, [storedPin]);
 
   if (!loaded) return null;
 
   return (
     <SecurityContext.Provider
-      value={{ lockEnabled, isLocked, biometricsAvailable, biometricType, enableLock, disableLock, unlock, lockNow }}
+      value={{
+        lockEnabled, isLocked, biometricsAvailable, biometricType,
+        hasPin, enableLock, disableLock, unlock, lockNow, savePin, checkPin,
+      }}
     >
       {children}
     </SecurityContext.Provider>
