@@ -72,7 +72,7 @@ export default function DashboardScreen() {
           <CashperMascot mood={mascotMood} size={70} showMessage={true} />
         </View>
 
-        <GradientCard colors={['#1A2F5A', '#2E4A80', '#1A2F5A']} style={styles.balanceCard}>
+        <GradientCard colors={['#FF6B35', '#FF8C5A', '#FF6B35']} style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
           <Text style={styles.balanceAmount}>
             ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -80,11 +80,11 @@ export default function DashboardScreen() {
           <View style={styles.incomeExpenseRow}>
             <View style={styles.incomeExpenseItem}>
               <View style={styles.incomeIcon}>
-                <MaterialIcons name="trending-up" size={16} color={Colors.income} />
+                <MaterialIcons name="trending-up" size={16} color="rgba(255,255,255,0.9)" />
               </View>
               <View>
                 <Text style={styles.ieLabel}>Income</Text>
-                <Text style={[styles.ieAmount, { color: Colors.income }]}>
+                <Text style={styles.ieAmount}>
                   ₱{monthlyIncome.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                 </Text>
               </View>
@@ -92,11 +92,11 @@ export default function DashboardScreen() {
             <View style={styles.divider} />
             <View style={styles.incomeExpenseItem}>
               <View style={styles.expenseIcon}>
-                <MaterialIcons name="trending-down" size={16} color={Colors.expense} />
+                <MaterialIcons name="trending-down" size={16} color="rgba(255,255,255,0.9)" />
               </View>
               <View>
                 <Text style={styles.ieLabel}>Expenses</Text>
-                <Text style={[styles.ieAmount, { color: Colors.expense }]}>
+                <Text style={styles.ieAmount}>
                   ₱{monthlyExpenses.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                 </Text>
               </View>
@@ -227,15 +227,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   balanceCard: { marginBottom: 16 },
-  balanceLabel: { color: Colors.textSecondary, fontSize: 14, marginBottom: 4 },
-  balanceAmount: { color: Colors.textPrimary, fontSize: 36, fontWeight: '700' as const, marginBottom: 20 },
+  balanceLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 4 },
+  balanceAmount: { color: '#FFFFFF', fontSize: 36, fontWeight: '700' as const, marginBottom: 20 },
   incomeExpenseRow: { flexDirection: 'row', alignItems: 'center' },
   incomeExpenseItem: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  incomeIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.income + '20', justifyContent: 'center', alignItems: 'center' },
-  expenseIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.expense + '20', justifyContent: 'center', alignItems: 'center' },
-  ieLabel: { color: Colors.textMuted, fontSize: 11 },
-  ieAmount: { fontSize: 16, fontWeight: '700' as const },
-  divider: { width: 1, height: 40, backgroundColor: Colors.border, marginHorizontal: 16 },
+  incomeIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.25)', justifyContent: 'center', alignItems: 'center' },
+  expenseIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.25)', justifyContent: 'center', alignItems: 'center' },
+  ieLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  ieAmount: { fontSize: 16, fontWeight: '700' as const, color: '#FFFFFF' },
+  divider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.3)', marginHorizontal: 16 },
   quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, backgroundColor: Colors.card, borderRadius: 16, padding: 12 },
   actionBtn: { alignItems: 'center', gap: 4, flex: 1 },
   actionText: { color: Colors.textSecondary, fontSize: 11, fontWeight: '600' as const },

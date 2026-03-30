@@ -17,8 +17,8 @@ const WALLET_TYPE_LABEL: Record<string, string> = {
 export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps) {
   if (compact) {
     return (
-      <TouchableOpacity style={[styles.compactCard, { borderColor: wallet.color }]} onPress={onPress} activeOpacity={0.8}>
-        <View style={[styles.iconBg, { backgroundColor: wallet.color + '30' }]}>
+      <TouchableOpacity style={[styles.compactCard, { borderLeftColor: wallet.color }]} onPress={onPress} activeOpacity={0.8}>
+        <View style={[styles.iconBg, { backgroundColor: wallet.color + '20' }]}>
           <MaterialIcons name={wallet.icon as any} size={20} color={wallet.color} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
@@ -33,19 +33,22 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
   }
 
   return (
-    <TouchableOpacity style={[styles.card, { borderColor: wallet.color + '50' }]} onPress={onPress} activeOpacity={0.85}>
-      <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: wallet.color + '25' }]}>
-          <MaterialIcons name={wallet.icon as any} size={28} color={wallet.color} />
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+      <View style={[styles.topBar, { backgroundColor: wallet.color }]} />
+      <View style={styles.body}>
+        <View style={styles.header}>
+          <View style={[styles.iconContainer, { backgroundColor: wallet.color + '18' }]}>
+            <MaterialIcons name={wallet.icon as any} size={26} color={wallet.color} />
+          </View>
+          <View style={[styles.typeTag, { backgroundColor: wallet.color + '14' }]}>
+            <Text style={[styles.typeText, { color: wallet.color }]}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
+          </View>
         </View>
-        <View style={styles.typeTag}>
-          <Text style={styles.typeText}>{WALLET_TYPE_LABEL[wallet.type]}</Text>
-        </View>
+        <Text style={styles.walletName}>{wallet.name}</Text>
+        <Text style={[styles.balance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
+          ₱{wallet.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </Text>
       </View>
-      <Text style={styles.walletName}>{wallet.name}</Text>
-      <Text style={[styles.balance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
-        ₱{wallet.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      </Text>
     </TouchableOpacity>
   );
 }
@@ -54,21 +57,33 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.card,
     borderRadius: 20,
-    padding: 20,
     marginRight: 12,
     width: 180,
-    borderWidth: 1,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
+  topBar: { height: 5, width: '100%' },
+  body: { padding: 18 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  iconContainer: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  typeTag: { backgroundColor: Colors.border, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  typeText: { color: Colors.textSecondary, fontSize: 10, fontWeight: '600' as const },
+  iconContainer: { width: 44, height: 44, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
+  typeTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  typeText: { fontSize: 10, fontWeight: '700' as const },
   walletName: { color: Colors.textSecondary, fontSize: 13, marginBottom: 4 },
-  balance: { fontSize: 22, fontWeight: '700' as const },
+  balance: { fontSize: 20, fontWeight: '700' as const, color: Colors.textPrimary },
   compactCard: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.card, borderRadius: 14,
-    padding: 14, marginBottom: 8, borderWidth: 1,
+    padding: 14, marginBottom: 8,
+    borderLeftWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   iconBg: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   compactName: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' as const },

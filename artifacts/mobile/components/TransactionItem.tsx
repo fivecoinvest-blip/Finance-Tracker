@@ -32,7 +32,7 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.75}>
-      <View style={[styles.iconBg, { backgroundColor: iconColor + '20' }]}>
+      <View style={[styles.iconBg, { backgroundColor: iconColor + '18' }]}>
         <MaterialIcons name={iconName as any} size={22} color={iconColor} />
       </View>
       <View style={styles.info}>
@@ -54,11 +54,16 @@ export function TransactionItem({ transaction, onPress }: TransactionItemProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: 16,
+    paddingVertical: 13, paddingHorizontal: 16,
     backgroundColor: Colors.card, borderRadius: 14,
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  iconBg: { width: 42, height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  iconBg: { width: 44, height: 44, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
   info: { flex: 1, marginLeft: 12 },
   category: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' as const },
   description: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
