@@ -273,9 +273,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
     const updatedTx = [newTx, ...transactions];
     const newAchievements = checkAchievements(stats, updatedWallets, updatedTx, budgets);
-    const xpGain = 10 + newAchievements.reduce((sum, id) => {
-      const a = DEFAULT_ACHIEVEMENTS.find(a => a.id === id);
-      return sum + (a?.xp ?? 0);
+    const xpGain = 10 + newAchievements.reduce((xpSum, achievementId) => {
+      const achievement = DEFAULT_ACHIEVEMENTS.find(ach => ach.id === achievementId);
+      return xpSum + (achievement?.xp ?? 0);
     }, 0);
 
     setWallets(updatedWallets);
@@ -334,9 +334,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
     const newAchievements = checkAchievements(stats, wallets, transactions, updated);
     if (newAchievements.length > 0) {
-      const xpGain = newAchievements.reduce((sum, aid) => {
-        const a = DEFAULT_ACHIEVEMENTS.find(a => a.id === aid);
-        return sum + (a?.xp ?? 0);
+      const xpGain = newAchievements.reduce((xpSum, achievementId) => {
+        const achievement = DEFAULT_ACHIEVEMENTS.find(ach => ach.id === achievementId);
+        return xpSum + (achievement?.xp ?? 0);
       }, 0);
       const updatedStats = await updateStreakAndXP(stats, xpGain, newAchievements);
       setStats(updatedStats);
