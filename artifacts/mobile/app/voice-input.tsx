@@ -1,9 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
@@ -65,12 +66,83 @@ export default function VoiceInputScreen() {
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState<ReturnType<typeof parseNaturalInput>>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [listening, setListening] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
+  const recognitionRef = useRef<any>(null);
+
+  const startPulse = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ])
+    ).start();
+  };
+  const stopPulse = () => {
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(1);
+  };
+
+  const startListening = () => {
+    if (Platform.OS === 'web') {
+      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SR) {
+        Alert.alert('Not Supported', 'Your browser does not support voice input. Please try Chrome or Edge.');
+        return;
+      }
+      const recognition = new SR();
+      recognitionRef.current = recognition;
+      recognition.lang = 'en-PH';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setListening(true);
+        startPulse();
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      };
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setText(transcript);
+        setParsed(null);
+        setListening(false);
+        stopPulse();
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      };
+      recognition.onerror = (e: any) => {
+        setListening(false);
+        stopPulse();
+        if (e.error !== 'aborted') {
+          Alert.alert('Mic Error', `Could not capture audio: ${e.error}`);
+        }
+      };
+      recognition.onend = () => {
+        setListening(false);
+        stopPulse();
+      };
+      recognition.start();
+    } else {
+      Alert.alert(
+        'Voice Input',
+        'Voice recognition on mobile requires a custom build.\n\nTip: Type your transaction in the text box — Cashper will auto-detect the details!',
+        [{ text: 'Got it' }]
+      );
+    }
+  };
+
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    setListening(false);
+    stopPulse();
+  };
 
   const handleParse = () => {
+    if (!text.trim()) return;
     const result = parseNaturalInput(text);
     setParsed(result);
     if (result) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    else Alert.alert('Hmm', "Couldn't detect an amount. Try: 'spent ₱200 on food'");
   };
 
   const handleConfirm = async () => {
@@ -86,9 +158,7 @@ export default function VoiceInputScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setConfirmed(true);
-    setTimeout(() => {
-      router.back();
-    }, 1200);
+    setTimeout(() => router.back(), 1200);
   };
 
   return (
@@ -102,6 +172,17 @@ export default function VoiceInputScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={styles.micSection}>
+          <TouchableOpacity onPress={listening ? stopListening : startListening} activeOpacity={0.85}>
+            <Animated.View style={[styles.micBtn, listening && styles.micBtnActive, { transform: [{ scale: pulseAnim }] }]}>
+              <MaterialIcons name={listening ? 'stop' : 'mic'} size={36} color={listening ? '#fff' : Colors.accent} />
+            </Animated.View>
+          </TouchableOpacity>
+          <Text style={styles.micHint}>
+            {listening ? 'Listening... tap to stop' : Platform.OS === 'web' ? 'Tap mic or type below' : 'Type below to quick-add'}
+          </Text>
+        </View>
+
         <View style={styles.inputArea}>
           <MaterialIcons name="edit" size={20} color={Colors.textMuted} style={styles.inputIcon} />
           <TextInput
@@ -111,13 +192,12 @@ export default function VoiceInputScreen() {
             value={text}
             onChangeText={t => { setText(t); setParsed(null); }}
             multiline
-            autoFocus
           />
         </View>
 
-        <TouchableOpacity style={styles.parseBtn} onPress={handleParse}>
-          <MaterialIcons name="auto-awesome" size={18} color={Colors.textDark} />
-          <Text style={styles.parseBtnText}>Parse</Text>
+        <TouchableOpacity style={[styles.parseBtn, !text.trim() && styles.parseBtnDisabled]} onPress={handleParse} disabled={!text.trim()}>
+          <MaterialIcons name="auto-awesome" size={18} color="#FFFFFF" />
+          <Text style={styles.parseBtnText}>Parse & Add</Text>
         </TouchableOpacity>
 
         {parsed && !confirmed && (
@@ -144,7 +224,7 @@ export default function VoiceInputScreen() {
               <Text style={styles.parsedValue}>{wallets[0]?.name ?? 'Default'}</Text>
             </View>
             <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
-              <MaterialIcons name="check" size={18} color={Colors.textDark} />
+              <MaterialIcons name="check" size={18} color="#FFFFFF" />
               <Text style={styles.confirmBtnText}>Add This Transaction</Text>
             </TouchableOpacity>
           </Card>
@@ -152,14 +232,14 @@ export default function VoiceInputScreen() {
 
         {confirmed && (
           <View style={styles.successState}>
-            <MaterialIcons name="check-circle" size={48} color={Colors.success} />
+            <MaterialIcons name="check-circle" size={56} color={Colors.success} />
             <Text style={styles.successText}>Transaction Added!</Text>
           </View>
         )}
 
         {!parsed && !confirmed && (
           <>
-            <Text style={styles.examplesTitle}>Try typing:</Text>
+            <Text style={styles.examplesTitle}>Try saying or typing:</Text>
             {EXAMPLES.map((ex, i) => (
               <TouchableOpacity key={i} style={styles.exampleChip} onPress={() => { setText(ex); setParsed(null); }}>
                 <MaterialIcons name="chat-bubble-outline" size={14} color={Colors.textMuted} />
@@ -179,11 +259,25 @@ const styles = StyleSheet.create({
   backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '700' as const },
   content: { paddingHorizontal: 20, paddingBottom: 60 },
+  micSection: { alignItems: 'center', paddingVertical: 24 },
+  micBtn: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: Colors.accent + '18',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: Colors.accent + '40',
+    marginBottom: 10,
+  },
+  micBtnActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  micHint: { color: Colors.textMuted, fontSize: 13, fontWeight: '500' as const },
   inputArea: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
   inputIcon: { marginTop: 3, marginRight: 8 },
-  textInput: { flex: 1, color: Colors.textPrimary, fontSize: 16, lineHeight: 24, minHeight: 80 },
+  textInput: { flex: 1, color: Colors.textPrimary, fontSize: 16, lineHeight: 24, minHeight: 60 },
   parseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.accent, borderRadius: 14, paddingVertical: 14, marginBottom: 20 },
-  parseBtnText: { color: Colors.textDark, fontSize: 15, fontWeight: '700' as const },
+  parseBtnDisabled: { opacity: 0.4 },
+  parseBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' as const },
   parsedCard: { marginBottom: 20 },
   parsedTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '700' as const, marginBottom: 14 },
   parsedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border },
@@ -192,7 +286,7 @@ const styles = StyleSheet.create({
   catTag: { borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10 },
   catTagText: { fontSize: 13, fontWeight: '700' as const },
   confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.accent, borderRadius: 12, paddingVertical: 14, marginTop: 16 },
-  confirmBtnText: { color: Colors.textDark, fontSize: 14, fontWeight: '700' as const },
+  confirmBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' as const },
   examplesTitle: { color: Colors.textSecondary, fontSize: 14, fontWeight: '600' as const, marginBottom: 12 },
   exampleChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.card, borderRadius: 10, padding: 12, marginBottom: 8 },
   exampleText: { color: Colors.textSecondary, fontSize: 14, flex: 1 },
