@@ -1,9 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CashperMascot, type MascotMood } from '@/components/CashperMascot';
 import { CATEGORY_COLORS } from '@/constants/colors';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type RecurringFrequency, type TransactionType } from '@/context/FinanceContext';
@@ -44,6 +46,10 @@ export default function AddTransactionScreen() {
   const [recurring, setRecurring] = useState<RecurringFrequency>(existingTx?.recurring ?? 'none');
   const [notes, setNotes] = useState(existingTx?.notes ?? '');
   const [saving, setSaving] = useState(false);
+  const [successMood, setSuccessMood] = useState<MascotMood>('happy');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!walletId && wallets.length > 0) setWalletId(wallets[0].id);
@@ -65,6 +71,23 @@ export default function AddTransactionScreen() {
       const other = wallets.find(w => w.id !== wid);
       setToWalletId(other?.id ?? '');
     }
+  };
+
+  const SUCCESS_MESSAGES: Record<TransactionType, { mood: MascotMood; msg: string }[]> = {
+    income: [
+      { mood: 'celebrate', msg: 'Money in! Keep that income flowing!' },
+      { mood: 'happy',     msg: 'Income logged! Your balance is growing.' },
+      { mood: 'celebrate', msg: 'Cha-ching! Every peso counts.' },
+    ],
+    expense: [
+      { mood: 'saving',   msg: 'Tracked! Knowing where money goes is half the battle.' },
+      { mood: 'happy',    msg: 'Expense logged! Stay mindful of your budget.' },
+      { mood: 'saving',   msg: 'Good job tracking — awareness is the first step to saving!' },
+    ],
+    transfer: [
+      { mood: 'happy',    msg: 'Transfer done! Wallets balanced.' },
+      { mood: 'saving',   msg: 'Money moved! Great wallet management.' },
+    ],
   };
 
   const handleSave = async () => {
@@ -93,7 +116,16 @@ export default function AddTransactionScreen() {
         await addTransaction(payload);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
+      const options = SUCCESS_MESSAGES[type];
+      const pick = options[Math.floor(Math.random() * options.length)];
+      setSuccessMood(pick.mood);
+      setSuccessMsg(pick.msg);
+      setShowSuccess(true);
+      successOpacity.setValue(0);
+      Animated.timing(successOpacity, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+      setTimeout(() => {
+        Animated.timing(successOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => router.back());
+      }, 1700);
     } finally {
       setSaving(false);
     }
@@ -246,6 +278,20 @@ export default function AddTransactionScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {showSuccess && (
+        <Animated.View style={[styles.successOverlay, { opacity: successOpacity }]}>
+          <View style={[styles.successCard, { backgroundColor: Colors.card }]}>
+            <CashperMascot
+              mood={successMood}
+              message={successMsg}
+              size={80}
+              showMessage
+              autoRotate={false}
+            />
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -287,4 +333,6 @@ const styles = StyleSheet.create({
   saveBtn: { borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' as const },
+  successOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
+  successCard: { borderRadius: 24, padding: 32, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
 });

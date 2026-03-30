@@ -43,13 +43,36 @@ export default function DashboardScreen() {
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
 
   const mascotMood = useMemo<MascotMood>(() => {
-    const overBudget = budgets.some(b => getBudgetUsage(b.id) > 0.8);
-    if (overBudget) return 'alert';
-    if (stats.streak >= 7) return 'celebrate';
-    if (monthlyExpenses < monthlyIncome * 0.5 && monthlyIncome > 0) return 'saving';
-    if (recentTx.length === 0) return 'default';
+    if (wallets.some(w => w.balance < 0)) return 'alert';
+    if (budgets.some(b => getBudgetUsage(b.id) > 1)) return 'alert';
+    if (budgets.some(b => getBudgetUsage(b.id) > 0.8)) return 'alert';
+    if (stats.streak === 7 || stats.streak === 30) return 'celebrate';
+    if (stats.streak >= 14) return 'celebrate';
+    if (transactions.length === 0) return 'encourage';
+    if (monthlyIncome > 0 && monthlyExpenses < monthlyIncome * 0.5) return 'saving';
+    if (monthlyIncome > 0 && monthlyExpenses < monthlyIncome * 0.8) return 'saving';
+    if (stats.streak >= 3) return 'happy';
+    if (recentTx.length === 0) return 'encourage';
     return 'happy';
-  }, [budgets, stats.streak, monthlyIncome, monthlyExpenses, recentTx.length]);
+  }, [wallets, budgets, stats.streak, transactions.length, monthlyIncome, monthlyExpenses, recentTx.length, getBudgetUsage]);
+
+  const mascotMessage = useMemo<string | undefined>(() => {
+    const negWallet = wallets.find(w => w.balance < 0);
+    if (negWallet) return `Your ${negWallet.name} wallet is overdrawn — let's fix that!`;
+    const overBudget = budgets.find(b => getBudgetUsage(b.id) > 1);
+    if (overBudget) return `Your ${overBudget.category} budget is exceeded. Time to review!`;
+    const nearBudget = budgets.find(b => { const u = getBudgetUsage(b.id); return u > 0.8 && u <= 1; });
+    if (nearBudget) return `Almost at the ${nearBudget.category} budget limit — watch out!`;
+    if (stats.streak === 30) return `30-day streak! You're a Monthly Master!`;
+    if (stats.streak === 7) return `7-day streak! Week Warrior badge unlocked!`;
+    if (stats.streak === 14) return `14 days straight! You're unstoppable!`;
+    if (stats.streak >= 3) return `${stats.streak}-day streak! Keep the momentum going!`;
+    if (transactions.length === 0) return `Hi! I'm Cashper — tap + to log your first transaction!`;
+    const hour = new Date().getHours();
+    if (hour < 12) return undefined;
+    if (hour >= 21) return `End of day! Don't forget to log today's transactions.`;
+    return undefined;
+  }, [wallets, budgets, stats.streak, transactions.length, getBudgetUsage]);
 
   return (
     <View style={[styles.screen, { backgroundColor: Colors.backgroundDark }]}>
@@ -72,7 +95,7 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.mascotRow}>
-          <CashperMascot mood={mascotMood} size={70} showMessage={true} />
+          <CashperMascot mood={mascotMood} size={70} showMessage={true} message={mascotMessage} />
         </View>
 
         <GradientCard colors={['#FF6B35', '#FF8C5A', '#FF6B35']} style={styles.balanceCard}>
