@@ -134,6 +134,12 @@ export function ProPaywall({ visible, onClose, trigger }: ProPaywallProps) {
 
               {isLoading ? (
                 <ActivityIndicator color="#FF6B35" style={{ marginVertical: 20 }} />
+              ) : !pkg ? (
+                <View style={[styles.errorBox, { backgroundColor: '#FF6B35' + '12' }]}>
+                  <Text style={[styles.errorText, { color: '#FF6B35' }]}>
+                    Store unavailable. Make sure you are signed in to Google Play and try again.
+                  </Text>
+                </View>
               ) : (
                 <TouchableOpacity
                   style={[styles.purchaseBtn, { backgroundColor: '#FF6B35', opacity: isPurchasing ? 0.7 : 1 }]}

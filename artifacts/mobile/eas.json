@@ -8,19 +8,32 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_gVlEBfQRTtRYZrfhKWvIMdguIFV",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_srXiNxXmHspwyksaUBAjidRLJRm",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_JKCSqrhJfpSVzSLbJmewEVjHVnL"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_gVlEBfQRTtRYZrfhKWvIMdguIFV",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_srXiNxXmHspwyksaUBAjidRLJRm",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_JKCSqrhJfpSVzSLbJmewEVjHVnL"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_gVlEBfQRTtRYZrfhKWvIMdguIFV",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_srXiNxXmHspwyksaUBAjidRLJRm",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_JKCSqrhJfpSVzSLbJmewEVjHVnL"
       }
     }
   },

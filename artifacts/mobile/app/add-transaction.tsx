@@ -331,13 +331,15 @@ export default function AddTransactionScreen() {
       {showSuccess && (
         <Animated.View style={[styles.successOverlay, { opacity: successOpacity }]}>
           <View style={[styles.successCard, { backgroundColor: Colors.card }]}>
-            <CashperMascot
-              mood={successMood}
-              message={successMsg}
-              size={80}
-              showMessage
-              autoRotate={false}
-            />
+            <View style={styles.successMascotRow}>
+              <CashperMascot
+                mood={successMood}
+                message={successMsg}
+                size={80}
+                showMessage
+                autoRotate={false}
+              />
+            </View>
           </View>
         </Animated.View>
       )}
@@ -393,5 +395,6 @@ const styles = StyleSheet.create({
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' as const },
   successOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
-  successCard: { borderRadius: 24, padding: 32, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  successCard: { borderRadius: 24, padding: 24, width: '82%', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  successMascotRow: { width: '100%' },
 });
