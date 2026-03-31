@@ -22,9 +22,6 @@ interface ProPaywallProps {
 
 const PRO_FEATURES = [
   { icon: 'account-balance-wallet', label: 'Unlimited wallets', desc: 'Add as many wallets as you need' },
-  { icon: 'bar-chart', label: 'Advanced analytics', desc: 'Deep insights & spending trends' },
-  { icon: 'psychology', label: 'AI insights', desc: 'Personalized financial advice' },
-  { icon: 'notifications-active', label: 'Budget alerts', desc: 'Real-time overspend notifications' },
   { icon: 'cloud-upload', label: 'Backup & restore', desc: 'Never lose your data' },
   { icon: 'star', label: 'All future features', desc: 'Get every new feature first' },
 ];
@@ -130,7 +127,7 @@ export function ProPaywall({ visible, onClose, trigger }: ProPaywallProps) {
               {purchaseConfirm && (
                 <View style={[styles.confirmBox, { backgroundColor: Colors.card }]}>
                   <Text style={[styles.confirmText, { color: Colors.textPrimary }]}>
-                    Confirm purchase of {productTitle} for {price}/month?
+                    Confirm one-time purchase of {productTitle} for {price}?
                   </Text>
                 </View>
               )}
@@ -149,8 +146,8 @@ export function ProPaywall({ visible, onClose, trigger }: ProPaywallProps) {
                     <>
                       <MaterialIcons name="workspace-premium" size={20} color="#fff" />
                       <Text style={styles.purchaseBtnText}>
-                        {purchaseConfirm ? 'Confirm — ' : 'Upgrade to Pro — '}
-                        {price}/mo
+                        {purchaseConfirm ? 'Confirm — ' : 'Get Pro — '}
+                        {price} one-time
                       </Text>
                     </>
                   )}
@@ -172,7 +169,7 @@ export function ProPaywall({ visible, onClose, trigger }: ProPaywallProps) {
           )}
 
           <Text style={[styles.legal, { color: Colors.textMuted }]}>
-            Subscription auto-renews monthly. Cancel anytime in your device's subscription settings.
+            One-time purchase. Pay once, own Cashper Pro forever. No recurring charges.
           </Text>
         </ScrollView>
       </View>

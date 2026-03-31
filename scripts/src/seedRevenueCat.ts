@@ -28,12 +28,11 @@ import {
 
 const PROJECT_NAME = "Cashper";
 
-const PRODUCT_IDENTIFIER = "cashper_pro_monthly";
-const PLAY_STORE_PRODUCT_IDENTIFIER = "cashper_pro_monthly:monthly";
+const PRODUCT_IDENTIFIER = "cashper_pro";
+const PLAY_STORE_PRODUCT_IDENTIFIER = "cashper_pro";
 
-const PRODUCT_DISPLAY_NAME = "Cashper Pro Monthly";
+const PRODUCT_DISPLAY_NAME = "Cashper Pro";
 const PRODUCT_USER_FACING_TITLE = "Cashper Pro";
-const PRODUCT_DURATION = "P1M";
 
 const APP_STORE_APP_NAME = "Cashper iOS";
 const APP_STORE_BUNDLE_ID = "com.cashper.app";
@@ -46,12 +45,12 @@ const ENTITLEMENT_DISPLAY_NAME = "Cashper Pro";
 const OFFERING_IDENTIFIER = "default";
 const OFFERING_DISPLAY_NAME = "Default Offering";
 
-const PACKAGE_IDENTIFIER = "$rc_monthly";
-const PACKAGE_DISPLAY_NAME = "Monthly Pro";
+const PACKAGE_IDENTIFIER = "$rc_lifetime";
+const PACKAGE_DISPLAY_NAME = "Cashper Pro (One-Time)";
 
 const PRODUCT_PRICES = [
-  { amount_micros: 4990000, currency: "USD" }, // $4.99/month
-  { amount_micros: 4490000, currency: "EUR" }, // €4.49/month
+  { amount_micros: 4990000, currency: "USD" }, // $4.99 one-time
+  { amount_micros: 4490000, currency: "EUR" }, // €4.49 one-time
 ];
 
 type TestStorePricesResponse = {
@@ -158,12 +157,11 @@ async function seedRevenueCat() {
     const body: CreateProductData["body"] = {
       store_identifier: productIdentifier,
       app_id: targetApp.id,
-      type: "subscription",
+      type: "non_consumable",
       display_name: PRODUCT_DISPLAY_NAME,
     };
 
     if (isTestStore) {
-      body.subscription = { duration: PRODUCT_DURATION };
       body.title = PRODUCT_USER_FACING_TITLE;
     }
 
