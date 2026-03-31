@@ -209,7 +209,15 @@ export default function AddTransactionScreen() {
             onChangeText={setDescription}
           />
 
-          <Text style={[styles.label, { color: Colors.textSecondary }]}>{type === 'transfer' ? 'From Wallet' : 'Wallet'}</Text>
+          {type === 'transfer' ? (
+            <View style={styles.transferLabelRow}>
+              <MaterialIcons name="arrow-upward" size={16} color="#FF3B30" />
+              <Text style={[styles.label, { color: Colors.textSecondary, marginBottom: 0 }]}>From Wallet</Text>
+              <Text style={[styles.transferLabelHint, { color: Colors.textMuted }]}>money leaves here</Text>
+            </View>
+          ) : (
+            <Text style={[styles.label, { color: Colors.textSecondary }]}>Wallet</Text>
+          )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
             {wallets.map(w => (
               <TouchableOpacity
@@ -225,7 +233,18 @@ export default function AddTransactionScreen() {
 
           {type === 'transfer' && (
             <>
-              <Text style={[styles.label, { color: Colors.textSecondary }]}>To Wallet</Text>
+              <View style={styles.transferArrowDivider}>
+                <View style={[styles.transferArrowLine, { backgroundColor: Colors.border }]} />
+                <View style={[styles.transferArrowCircle, { backgroundColor: Colors.accent }]}>
+                  <MaterialIcons name="arrow-downward" size={16} color="#fff" />
+                </View>
+                <View style={[styles.transferArrowLine, { backgroundColor: Colors.border }]} />
+              </View>
+              <View style={styles.transferLabelRow}>
+                <MaterialIcons name="arrow-downward" size={16} color="#4CAF50" />
+                <Text style={[styles.label, { color: Colors.textSecondary, marginBottom: 0 }]}>To Wallet</Text>
+                <Text style={[styles.transferLabelHint, { color: Colors.textMuted }]}>money arrives here</Text>
+              </View>
               {availableToWallets.length === 0 ? (
                 <View style={[styles.noWalletHint, { backgroundColor: Colors.warning + '15' }]}>
                   <MaterialIcons name="info-outline" size={16} color={Colors.warning} />
@@ -326,6 +345,11 @@ const styles = StyleSheet.create({
   walletBtnText: { fontSize: 13, fontWeight: '600' as const },
   noWalletHint: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, padding: 12, marginBottom: 20 },
   noWalletHintText: { fontSize: 13, fontWeight: '500' as const },
+  transferLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  transferLabelHint: { fontSize: 12, fontStyle: 'italic' as const },
+  transferArrowDivider: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
+  transferArrowLine: { flex: 1, height: 1 },
+  transferArrowCircle: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10 },
   recurringRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   recurringBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   recurringBtnText: { fontWeight: '600' as const, fontSize: 13 },
