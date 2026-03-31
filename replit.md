@@ -42,6 +42,7 @@ A personal finance tracker mobile app for iOS and Android.
 
 ### Features
 - **Wallet/Account Tracking**: Cash, Bank, Savings, E-Wallet, Credit Card wallets
+- **Free vs Pro Tiers**: Free = 3 wallets max; Pro = unlimited wallets + all features. Paywall via RevenueCat (`$4.99/mo`)
 - **Transactions**: Income, expense, transfer with automatic wallet balance updates
 - **Budget Management**: Weekly/monthly budgets with progress tracking and alerts
 - **Analytics**: Spending charts, category breakdown, trends
@@ -49,7 +50,17 @@ A personal finance tracker mobile app for iOS and Android.
 - **Gamification**: Streaks, XP, levels (1-∞), achievements/badges, financial health score
 - **Quick Add**: Natural language text input for fast transaction entry
 - **Offline-First**: All data in AsyncStorage, no backend required
-- **Settings**: Ad removal (₱999 one-time), data backup options
+- **Settings**: Data backup/restore options
+
+### RevenueCat (Monetization)
+- Integration connected via Replit RevenueCat connector
+- Entitlement: `pro`; Product: `cashper_pro_monthly` ($4.99/month)
+- Package: `$rc_monthly`; Offering: `default`
+- Env vars: `EXPO_PUBLIC_REVENUECAT_TEST_API_KEY`, `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`
+- Project IDs stored as env vars: `REVENUECAT_PROJECT_ID`, `REVENUECAT_TEST_STORE_APP_ID`, `REVENUECAT_APPLE_APP_STORE_APP_ID`, `REVENUECAT_GOOGLE_PLAY_STORE_APP_ID`
+- Client code: `artifacts/mobile/lib/revenuecat.tsx` (SubscriptionProvider + useSubscription hook)
+- Paywall component: `artifacts/mobile/components/ProPaywall.tsx`
+- Seed script: `scripts/src/seedRevenueCat.ts` (run with `pnpm --filter @workspace/scripts exec tsx src/seedRevenueCat.ts`)
 
 ### Architecture
 - **State**: React Context (`FinanceContext`) with AsyncStorage persistence

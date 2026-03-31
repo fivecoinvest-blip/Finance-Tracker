@@ -16,9 +16,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ProPaywall } from '@/components/ProPaywall';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useFinance, type Wallet, type WalletType } from '@/context/FinanceContext';
 import { useColors } from '@/context/ThemeContext';
+import { useSubscription } from '@/lib/revenuecat';
+
+const FREE_WALLET_LIMIT = 3;
 
 function useCountUp(target: number, duration = 900): number {
   const animRef = useRef(new Animated.Value(0));
@@ -177,10 +181,21 @@ export default function WalletsScreen() {
   const Colors = useColors();
   const { wallets, deleteWallet, getTotalBalance } = useFinance();
   const { formatAmount } = useCurrency();
+  const { isSubscribed } = useSubscription();
   const [showAdd, setShowAdd] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [editWallet, setEditWallet] = useState<Wallet | undefined>(undefined);
   const [walletToDelete, setWalletToDelete] = useState<Wallet | undefined>(undefined);
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
+
+  const handleAddWallet = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (!isSubscribed && wallets.length >= FREE_WALLET_LIMIT) {
+      setShowPaywall(true);
+    } else {
+      setShowAdd(true);
+    }
+  };
 
   const totalBalance = getTotalBalance();
   const animatedNetWorth = useCountUp(totalBalance);
@@ -208,6 +223,11 @@ export default function WalletsScreen() {
       {editWallet && (
         <WalletFormModal visible={true} onClose={() => setEditWallet(undefined)} editWallet={editWallet} />
       )}
+      <ProPaywall
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        trigger="wallet_limit"
+      />
       <ConfirmModal
         visible={!!walletToDelete}
         title="Delete Wallet"
@@ -223,7 +243,7 @@ export default function WalletsScreen() {
       >
         <View style={styles.headerRow}>
           <Text style={[styles.screenTitle, { color: Colors.textPrimary }]}>Wallets</Text>
-          <TouchableOpacity style={styles.addBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setShowAdd(true); }}>
+          <TouchableOpacity style={styles.addBtn} onPress={handleAddWallet}>
             <MaterialIcons name="add" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -234,6 +254,17 @@ export default function WalletsScreen() {
             {formatAmount(animatedNetWorth)}
           </Text>
           <Text style={[styles.walletCount, { color: Colors.textMuted }]}>{wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</Text>
+          {!isSubscribed && (
+            <View style={styles.freeBadge}>
+              <Text style={styles.freeBadgeText}>{wallets.length}/{FREE_WALLET_LIMIT} free wallets</Text>
+            </View>
+          )}
+          {isSubscribed && (
+            <View style={[styles.freeBadge, { backgroundColor: '#FF6B35' + '20' }]}>
+              <MaterialIcons name="workspace-premium" size={12} color="#FF6B35" />
+              <Text style={[styles.freeBadgeText, { color: '#FF6B35' }]}>Pro — unlimited wallets</Text>
+            </View>
+          )}
         </Animated.View>
 
         {wallets.length === 0 ? (
@@ -241,7 +272,7 @@ export default function WalletsScreen() {
             <MaterialIcons name="account-balance-wallet" size={56} color={Colors.textMuted} />
             <Text style={[styles.emptyTitle, { color: Colors.textPrimary }]}>No wallets yet</Text>
             <Text style={[styles.emptyText, { color: Colors.textMuted }]}>Add a wallet to start tracking your money</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={() => setShowAdd(true)}>
+            <TouchableOpacity style={styles.emptyBtn} onPress={handleAddWallet}>
               <Text style={styles.emptyBtnText}>Add First Wallet</Text>
             </TouchableOpacity>
           </View>
@@ -270,6 +301,12 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 13 },
   totalAmount: { fontSize: 34, fontWeight: '700' as const, marginTop: 4 },
   walletCount: { fontSize: 13, marginTop: 4 },
+  freeBadge: {
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4,
+    marginTop: 8, backgroundColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4,
+  },
+  freeBadgeText: { fontSize: 12, fontWeight: '600' as const, color: '#888' },
   walletRow: {
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 14, padding: 14, marginBottom: 10,

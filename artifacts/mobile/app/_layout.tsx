@@ -22,6 +22,9 @@ import { useNotifications } from "@/context/NotificationContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { SecurityProvider, useSecurity } from "@/context/SecurityContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
+
+initializeRevenueCat();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -90,24 +93,26 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <ThemeProvider>
-                <SecurityProvider>
-                  <CurrencyProvider>
-                    <NotificationProvider>
-                      <FinanceProvider>
-                        <BudgetAlertWatcher />
-                        <LockGate>
-                          <RootLayoutNav />
-                        </LockGate>
-                      </FinanceProvider>
-                    </NotificationProvider>
-                  </CurrencyProvider>
-                </SecurityProvider>
-              </ThemeProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
+          <SubscriptionProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <ThemeProvider>
+                  <SecurityProvider>
+                    <CurrencyProvider>
+                      <NotificationProvider>
+                        <FinanceProvider>
+                          <BudgetAlertWatcher />
+                          <LockGate>
+                            <RootLayoutNav />
+                          </LockGate>
+                        </FinanceProvider>
+                      </NotificationProvider>
+                    </CurrencyProvider>
+                  </SecurityProvider>
+                </ThemeProvider>
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </SubscriptionProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
