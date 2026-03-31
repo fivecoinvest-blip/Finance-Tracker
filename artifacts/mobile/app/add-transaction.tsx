@@ -209,62 +209,92 @@ export default function AddTransactionScreen() {
             onChangeText={setDescription}
           />
 
-          {type === 'transfer' ? (
-            <View style={styles.transferLabelRow}>
-              <MaterialIcons name="arrow-upward" size={16} color="#FF3B30" />
-              <Text style={[styles.label, { color: Colors.textSecondary, marginBottom: 0 }]}>From Wallet</Text>
-              <Text style={[styles.transferLabelHint, { color: Colors.textMuted }]}>money leaves here</Text>
-            </View>
-          ) : (
-            <Text style={[styles.label, { color: Colors.textSecondary }]}>Wallet</Text>
+          {type !== 'transfer' && (
+            <>
+              <Text style={[styles.label, { color: Colors.textSecondary }]}>Wallet</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+                {wallets.map(w => (
+                  <TouchableOpacity
+                    key={w.id}
+                    style={[styles.walletBtn, { borderColor: Colors.border }, walletId === w.id && { borderColor: w.color, backgroundColor: w.color + '20' }]}
+                    onPress={() => handleFromWalletChange(w.id)}
+                  >
+                    <MaterialIcons name={w.icon as any} size={16} color={walletId === w.id ? w.color : Colors.textMuted} />
+                    <Text style={[styles.walletBtnText, { color: Colors.textMuted }, walletId === w.id && { color: w.color }]}>{w.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
           )}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-            {wallets.map(w => (
-              <TouchableOpacity
-                key={w.id}
-                style={[styles.walletBtn, { borderColor: Colors.border }, walletId === w.id && { borderColor: w.color, backgroundColor: w.color + '20' }]}
-                onPress={() => handleFromWalletChange(w.id)}
-              >
-                <MaterialIcons name={w.icon as any} size={16} color={walletId === w.id ? w.color : Colors.textMuted} />
-                <Text style={[styles.walletBtnText, { color: Colors.textMuted }, walletId === w.id && { color: w.color }]}>{w.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
 
           {type === 'transfer' && (
-            <>
-              <View style={styles.transferArrowDivider}>
-                <View style={[styles.transferArrowLine, { backgroundColor: Colors.border }]} />
-                <View style={[styles.transferArrowCircle, { backgroundColor: Colors.accent }]}>
-                  <MaterialIcons name="arrow-downward" size={16} color="#fff" />
-                </View>
-                <View style={[styles.transferArrowLine, { backgroundColor: Colors.border }]} />
+            wallets.length < 2 ? (
+              <View style={[styles.noWalletHint, { backgroundColor: Colors.warning + '15' }]}>
+                <MaterialIcons name="info-outline" size={16} color={Colors.warning} />
+                <Text style={[styles.noWalletHintText, { color: Colors.warning }]}>Add another wallet to enable transfers</Text>
               </View>
-              <View style={styles.transferLabelRow}>
-                <MaterialIcons name="arrow-downward" size={16} color="#4CAF50" />
-                <Text style={[styles.label, { color: Colors.textSecondary, marginBottom: 0 }]}>To Wallet</Text>
-                <Text style={[styles.transferLabelHint, { color: Colors.textMuted }]}>money arrives here</Text>
-              </View>
-              {availableToWallets.length === 0 ? (
-                <View style={[styles.noWalletHint, { backgroundColor: Colors.warning + '15' }]}>
-                  <MaterialIcons name="info-outline" size={16} color={Colors.warning} />
-                  <Text style={[styles.noWalletHintText, { color: Colors.warning }]}>Add another wallet to enable transfers</Text>
+            ) : (
+              <View style={[styles.transferPanel, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                {/* FROM side */}
+                <View style={styles.transferSide}>
+                  <Text style={[styles.transferSideLabel, { color: '#FF3B30' }]}>FROM</Text>
+                  <Text style={[styles.transferSideHint, { color: Colors.textMuted }]}>money leaves</Text>
+                  <ScrollView style={styles.transferPickerScroll} showsVerticalScrollIndicator={false}>
+                    {wallets.filter(w => w.id !== toWalletId).map(w => {
+                      const selected = walletId === w.id;
+                      return (
+                        <TouchableOpacity
+                          key={w.id}
+                          style={[styles.transferPickerItem, { borderColor: selected ? w.color : Colors.border, backgroundColor: selected ? w.color + '18' : Colors.backgroundDark }]}
+                          onPress={() => setWalletId(w.id)}
+                        >
+                          <MaterialIcons name={w.icon as any} size={18} color={selected ? w.color : Colors.textMuted} />
+                          <Text style={[styles.transferPickerText, { color: selected ? w.color : Colors.textSecondary }]} numberOfLines={1}>{w.name}</Text>
+                          {selected && <MaterialIcons name="check-circle" size={14} color={w.color} />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
                 </View>
-              ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-                  {availableToWallets.map(w => (
-                    <TouchableOpacity
-                      key={w.id}
-                      style={[styles.walletBtn, { borderColor: Colors.border }, toWalletId === w.id && { borderColor: w.color, backgroundColor: w.color + '20' }]}
-                      onPress={() => setToWalletId(w.id)}
-                    >
-                      <MaterialIcons name={w.icon as any} size={16} color={toWalletId === w.id ? w.color : Colors.textMuted} />
-                      <Text style={[styles.walletBtnText, { color: Colors.textMuted }, toWalletId === w.id && { color: w.color }]}>{w.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
-            </>
+
+                {/* Swap button */}
+                <View style={styles.transferMiddle}>
+                  <TouchableOpacity
+                    style={[styles.swapBtn, { backgroundColor: Colors.accent }]}
+                    onPress={() => {
+                      const prev = walletId;
+                      setWalletId(toWalletId);
+                      setToWalletId(prev);
+                    }}
+                  >
+                    <MaterialIcons name="swap-horiz" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  <Text style={[styles.swapBtnLabel, { color: Colors.textMuted }]}>swap</Text>
+                </View>
+
+                {/* TO side */}
+                <View style={styles.transferSide}>
+                  <Text style={[styles.transferSideLabel, { color: '#4CAF50' }]}>TO</Text>
+                  <Text style={[styles.transferSideHint, { color: Colors.textMuted }]}>money arrives</Text>
+                  <ScrollView style={styles.transferPickerScroll} showsVerticalScrollIndicator={false}>
+                    {wallets.filter(w => w.id !== walletId).map(w => {
+                      const selected = toWalletId === w.id;
+                      return (
+                        <TouchableOpacity
+                          key={w.id}
+                          style={[styles.transferPickerItem, { borderColor: selected ? w.color : Colors.border, backgroundColor: selected ? w.color + '18' : Colors.backgroundDark }]}
+                          onPress={() => setToWalletId(w.id)}
+                        >
+                          <MaterialIcons name={w.icon as any} size={18} color={selected ? w.color : Colors.textMuted} />
+                          <Text style={[styles.transferPickerText, { color: selected ? w.color : Colors.textSecondary }]} numberOfLines={1}>{w.name}</Text>
+                          {selected && <MaterialIcons name="check-circle" size={14} color={w.color} />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              </View>
+            )
           )}
 
           <Text style={[styles.label, { color: Colors.textSecondary }]}>Recurring</Text>
@@ -345,11 +375,16 @@ const styles = StyleSheet.create({
   walletBtnText: { fontSize: 13, fontWeight: '600' as const },
   noWalletHint: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, padding: 12, marginBottom: 20 },
   noWalletHintText: { fontSize: 13, fontWeight: '500' as const },
-  transferLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  transferLabelHint: { fontSize: 12, fontStyle: 'italic' as const },
-  transferArrowDivider: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  transferArrowLine: { flex: 1, height: 1 },
-  transferArrowCircle: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10 },
+  transferPanel: { flexDirection: 'row', borderRadius: 16, borderWidth: 1, padding: 14, gap: 8, marginBottom: 20, alignItems: 'flex-start' },
+  transferSide: { flex: 1 },
+  transferSideLabel: { fontSize: 12, fontWeight: '800' as const, letterSpacing: 1, marginBottom: 2 },
+  transferSideHint: { fontSize: 11, fontStyle: 'italic' as const, marginBottom: 8 },
+  transferPickerScroll: { maxHeight: 130 },
+  transferPickerItem: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10, marginBottom: 6 },
+  transferPickerText: { flex: 1, fontSize: 13, fontWeight: '600' as const },
+  transferMiddle: { alignItems: 'center', justifyContent: 'center', paddingTop: 28 },
+  swapBtn: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  swapBtnLabel: { fontSize: 10, marginTop: 4, textAlign: 'center' as const },
   recurringRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   recurringBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   recurringBtnText: { fontWeight: '600' as const, fontSize: 13 },
