@@ -28,7 +28,14 @@ initializeRevenueCat();
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      throwOnError: false,
+      retry: false,
+    },
+  },
+});
 
 function LockGate({ children }: { children: React.ReactNode }) {
   const { isLocked } = useSecurity();

@@ -45,19 +45,33 @@ function useSubscriptionContext() {
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
-      const info = await Purchases.getCustomerInfo();
-      return info;
+      try {
+        const info = await Purchases.getCustomerInfo();
+        return info;
+      } catch (e) {
+        console.warn("RevenueCat getCustomerInfo error (non-fatal):", e);
+        return null;
+      }
     },
     staleTime: 60 * 1000,
+    retry: false,
+    throwOnError: false,
   });
 
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
-      const offerings = await Purchases.getOfferings();
-      return offerings;
+      try {
+        const offerings = await Purchases.getOfferings();
+        return offerings;
+      } catch (e) {
+        console.warn("RevenueCat getOfferings error (non-fatal):", e);
+        return null;
+      }
     },
     staleTime: 300 * 1000,
+    retry: false,
+    throwOnError: false,
   });
 
   const purchaseMutation = useMutation({
@@ -76,11 +90,11 @@ function useSubscriptionContext() {
   });
 
   const isSubscribed =
-    customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
+    (customerInfoQuery.data?.entitlements?.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined) ?? false;
 
   return {
-    customerInfo: customerInfoQuery.data,
-    offerings: offeringsQuery.data,
+    customerInfo: customerInfoQuery.data ?? null,
+    offerings: offeringsQuery.data ?? null,
     isSubscribed,
     isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading,
     purchase: purchaseMutation.mutateAsync,
