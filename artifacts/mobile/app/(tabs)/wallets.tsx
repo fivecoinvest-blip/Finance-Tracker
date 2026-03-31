@@ -22,7 +22,7 @@ import { useFinance, type Wallet, type WalletType } from '@/context/FinanceConte
 import { useColors } from '@/context/ThemeContext';
 import { useSubscription } from '@/lib/revenuecat';
 
-const FREE_WALLET_LIMIT = 3;
+const FREE_WALLET_LIMIT = 5;
 
 function useCountUp(target: number, duration = 900): number {
   const animRef = useRef(new Animated.Value(0));

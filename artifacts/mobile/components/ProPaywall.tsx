@@ -86,7 +86,7 @@ export function ProPaywall({ visible, onClose, trigger }: ProPaywallProps) {
             <Text style={[styles.heroTitle, { color: Colors.textPrimary }]}>Cashper Pro</Text>
             <Text style={[styles.heroSub, { color: Colors.textMuted }]}>
               {trigger === 'wallet_limit'
-                ? 'You\'ve reached the 3-wallet limit on the free plan.'
+                ? 'You\'ve reached the 5-wallet limit on the free plan.'
                 : 'Unlock everything Cashper has to offer.'}
             </Text>
           </View>
