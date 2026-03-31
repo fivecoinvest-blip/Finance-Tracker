@@ -14,10 +14,16 @@
       "backgroundColor": "#FFF8F4"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.cashper.app"
     },
     "android": {
-      "backgroundColor": "#FFF8F4"
+      "backgroundColor": "#FFF8F4",
+      "package": "com.cashper.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#FFF8F4"
+      }
     },
     "web": {
       "favicon": "./assets/images/icon.png"
