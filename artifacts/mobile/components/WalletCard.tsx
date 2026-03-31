@@ -56,6 +56,12 @@ export function WalletCard({ wallet, onPress, compact = false }: WalletCardProps
         <Text style={[styles.balance, { color: wallet.balance < 0 ? Colors.danger : Colors.textPrimary }]}>
           {formatAmount(wallet.balance)}
         </Text>
+        {wallet.balance < 0 && (
+          <View style={[styles.negativeWarning, { backgroundColor: Colors.danger + '15' }]}>
+            <MaterialIcons name="warning-amber" size={12} color={Colors.danger} />
+            <Text style={[styles.negativeWarningText, { color: Colors.danger }]}>Negative balance</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -95,4 +101,6 @@ const styles = StyleSheet.create({
   compactName: { fontSize: 14, fontWeight: '600' as const },
   compactType: { fontSize: 11, marginTop: 2 },
   compactBalance: { fontSize: 15, fontWeight: '700' as const },
+  negativeWarning: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, marginTop: 6 },
+  negativeWarningText: { fontSize: 10, fontWeight: '600' as const },
 });

@@ -106,17 +106,19 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const formatAmount = useCallback((amount: number, fractionDigits?: number): string => {
     const digits = fractionDigits ?? currency.decimals;
-    return `${currency.symbol}${Math.abs(amount).toLocaleString(currency.locale, {
+    const abs = Math.abs(amount).toLocaleString(currency.locale, {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
-    })}`;
+    });
+    return amount < 0 ? `-${currency.symbol}${abs}` : `${currency.symbol}${abs}`;
   }, [currency]);
 
   const formatAmountShort = useCallback((amount: number): string => {
-    return `${currency.symbol}${Math.abs(amount).toLocaleString(currency.locale, {
+    const abs = Math.abs(amount).toLocaleString(currency.locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    })}`;
+    });
+    return amount < 0 ? `-${currency.symbol}${abs}` : `${currency.symbol}${abs}`;
   }, [currency]);
 
   const formatDate = useCallback((dateStr: string, options?: Intl.DateTimeFormatOptions): string => {
